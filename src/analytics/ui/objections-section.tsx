@@ -1,4 +1,7 @@
-import { createMetricsCalculator } from "@/analytics/application/metrics-calculator";
+import {
+  createMetricsCalculator,
+  type MetricFilters,
+} from "@/analytics/application/metrics-calculator";
 import { ObjectionsBarChart } from "@/analytics/ui/objections-bar-chart";
 import {
   Card,
@@ -14,10 +17,19 @@ const CYAN_400 = "#22d3ee";
 /**
  * §8.4 — Objeciones. Two horizontal bar charts side-by-side: what kills
  * deals (red) vs what gets overcome in the ones that close (cyan).
+ *
+ * Note: `filters.closed` is intentionally IGNORED here — the section
+ * splits by closed-vs-not internally. Passing an explicit `closed`
+ * filter would collapse one of the two panes to empty.
  */
-export async function ObjectionsSection() {
+export async function ObjectionsSection({
+  filters,
+}: {
+  readonly filters?: MetricFilters;
+} = {}) {
   const calc = createMetricsCalculator();
-  const breakdown = await calc.objections();
+  const scoped = filters ? stripClosed(filters) : undefined;
+  const breakdown = await calc.objections(scoped);
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
@@ -53,4 +65,10 @@ export async function ObjectionsSection() {
       </CardContent>
     </Card>
   );
+}
+
+function stripClosed(filters: MetricFilters): MetricFilters {
+  const { closed: _closed, ...rest } = filters;
+  void _closed;
+  return rest;
 }

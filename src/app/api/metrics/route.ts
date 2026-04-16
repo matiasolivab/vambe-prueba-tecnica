@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { createMetricsCalculator } from "@/analytics/application/metrics-calculator";
 import {
-  createMetricsCalculator,
-  type MetricFilters,
-} from "@/analytics/application/metrics-calculator";
+  metricFiltersOf,
+  parseFiltersFromSearchParams,
+} from "@/shared/filters/parse-filters";
 
 /**
  * GET /api/metrics — dashboard aggregates (PRD §8.1–8.4). Fired once on page
@@ -15,7 +16,8 @@ import {
  * + `sellerByIndustry` for §8.2, `closeRateBy` for §8.3, `objections` for §8.4.
  *
  * `search` is intentionally NOT part of `MetricFilters` (only table filtering
- * uses free text; metrics are categorical).
+ * uses free text; metrics are categorical), so we strip it via
+ * {@link metricFiltersOf} after parsing.
  */
 
 export const dynamic = "force-dynamic";
@@ -23,7 +25,8 @@ export const runtime = "nodejs";
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const filters = parseMetricFilters(request.nextUrl.searchParams);
+    const all = parseFiltersFromSearchParams(request.nextUrl.searchParams);
+    const filters = metricFiltersOf(all);
     const calc = createMetricsCalculator();
     const [
       kpis,
@@ -67,21 +70,4 @@ export async function GET(request: NextRequest): Promise<Response> {
     console.error("[GET /api/metrics] error:", err);
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
-}
-
-function parseMetricFilters(sp: URLSearchParams): MetricFilters {
-  const filters: Record<string, string | boolean> = {};
-  for (const key of [
-    "assignedSeller",
-    "industry",
-    "companySize",
-    "sentiment",
-  ] as const) {
-    const value = sp.get(key);
-    if (value !== null && value.length > 0) filters[key] = value;
-  }
-  const closed = sp.get("closed");
-  if (closed === "true") filters.closed = true;
-  else if (closed === "false") filters.closed = false;
-  return filters as MetricFilters;
 }

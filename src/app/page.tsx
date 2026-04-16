@@ -3,15 +3,38 @@ import { CloseAnalysis } from "@/analytics/ui/close-analysis";
 import { KpiTile } from "@/analytics/ui/kpi-tile";
 import { ObjectionsSection } from "@/analytics/ui/objections-section";
 import { SellersSection } from "@/analytics/ui/sellers-section";
+import { FiltersBar } from "@/app/ui/filters-bar";
+import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
 import { ClientsSection } from "@/clients/ui/clients-section";
 import UploadButton from "@/ingestion/ui/upload-button";
+import {
+  metricFiltersOf,
+  parseFiltersFromSearchParams,
+} from "@/shared/filters/parse-filters";
 
 // KPIs must reflect live Neon data on every request — no ISR, no static cache.
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+/**
+ * Next 16 passes `searchParams` as a Promise — awaiting it is mandatory
+ * (see `node_modules/next/dist/docs/01-app/01-getting-started/03-layouts-and-pages.md`).
+ */
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const filters = parseFiltersFromSearchParams(sp);
+  const metricFilters = metricFiltersOf(filters);
+
   const calc = createMetricsCalculator();
-  const kpis = await calc.kpis();
+  const repo = createDrizzleClientRepository();
+
+  const [kpis, sellers] = await Promise.all([
+    calc.kpis(metricFilters),
+    repo.distinctSellers(),
+  ]);
 
   const closeRatePct = `${Math.round(kpis.closeRate * 100)}%`;
   const topSellerValue = kpis.topSeller?.name ?? "—";
@@ -38,6 +61,8 @@ export default async function DashboardPage() {
           <UploadButton />
         </header>
 
+        <FiltersBar sellers={sellers} />
+
         <section
           aria-label="KPIs principales"
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
@@ -62,16 +87,16 @@ export default async function DashboardPage() {
         </section>
 
         <section className="mt-10">
-          <SellersSection />
+          <SellersSection filters={metricFilters} />
         </section>
         <section className="mt-10">
-          <CloseAnalysis />
+          <CloseAnalysis filters={metricFilters} />
         </section>
         <section className="mt-10">
-          <ObjectionsSection />
+          <ObjectionsSection filters={metricFilters} />
         </section>
         <section className="mt-10">
-          <ClientsSection />
+          <ClientsSection filters={filters} />
         </section>
       </div>
     </main>

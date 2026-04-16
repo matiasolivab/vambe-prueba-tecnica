@@ -139,6 +139,9 @@ class FakeRepository implements ClientRepository {
   public readonly findByEmail = vi.fn(async () => null);
   public readonly count = vi.fn(async () => 0);
   public readonly findAll = vi.fn(async (): Promise<readonly Client[]> => []);
+  public readonly distinctSellers = vi.fn(
+    async (): Promise<readonly string[]> => [],
+  );
 }
 
 interface Captured {

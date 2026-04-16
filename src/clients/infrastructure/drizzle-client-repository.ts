@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
 
 import type {
@@ -90,6 +90,17 @@ export class DrizzleClientRepository implements ClientRepository {
       .from(clients)
       .where(where)
       .orderBy(desc(clients.createdAt));
+  }
+
+  public async distinctSellers(): Promise<readonly string[]> {
+    // `assignedSeller` is NOT NULL in the schema (every CSV row carries
+    // one) so we don't need to filter nulls here — let the DB do the
+    // dedup + sort in one pass.
+    const rows = await this.db
+      .selectDistinct({ name: clients.assignedSeller })
+      .from(clients)
+      .orderBy(asc(clients.assignedSeller));
+    return rows.map((r) => r.name);
   }
 
   private buildWhere(filters?: ClientFilters): SQL | undefined {

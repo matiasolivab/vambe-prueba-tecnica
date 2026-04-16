@@ -1,4 +1,7 @@
-import { createMetricsCalculator } from "@/analytics/application/metrics-calculator";
+import {
+  createMetricsCalculator,
+  type MetricFilters,
+} from "@/analytics/application/metrics-calculator";
 import { CloseRateBarChart } from "@/analytics/ui/close-rate-bar-chart";
 import {
   Card,
@@ -11,18 +14,22 @@ import {
 /**
  * §8.3 — Análisis de cierre. Six close-rate breakdowns in a responsive
  * grid. All six queries run in parallel so the whole section shares a
- * single round-trip budget.
+ * single round-trip budget. Accepts global filters (RF3.2).
  */
-export async function CloseAnalysis() {
+export async function CloseAnalysis({
+  filters,
+}: {
+  readonly filters?: MetricFilters;
+} = {}) {
   const calc = createMetricsCalculator();
   const [byIndustry, byCompanySize, byRole, bySentiment, bySignal, byTimeline] =
     await Promise.all([
-      calc.closeRateBy("industry"),
-      calc.closeRateBy("companySize"),
-      calc.closeRateBy("decisionMakerRole"),
-      calc.closeRateBy("sentiment"),
-      calc.closeRateBy("buyingSignal"),
-      calc.closeRateBy("purchaseTimeline"),
+      calc.closeRateBy("industry", filters),
+      calc.closeRateBy("companySize", filters),
+      calc.closeRateBy("decisionMakerRole", filters),
+      calc.closeRateBy("sentiment", filters),
+      calc.closeRateBy("buyingSignal", filters),
+      calc.closeRateBy("purchaseTimeline", filters),
     ]);
 
   return (

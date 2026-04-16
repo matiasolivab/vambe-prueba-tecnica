@@ -263,6 +263,38 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
     expect(emails).not.toContain("test-and-miss-closed@example.com");
   });
 
+  it("distinctSellers() returns every unique assignedSeller ordered alphabetically", async () => {
+    // Seed three test rows with TWO distinct sellers; ordering must hit both
+    // tokens and must NOT depend on insertion order.
+    await repo.upsertByEmail(
+      baseClient({ email: "test-ds-a@example.com", assignedSeller: "Zelda" }),
+    );
+    await repo.upsertByEmail(
+      baseClient({ email: "test-ds-b@example.com", assignedSeller: "Alma" }),
+    );
+    await repo.upsertByEmail(
+      baseClient({ email: "test-ds-c@example.com", assignedSeller: "Alma" }),
+    );
+
+    const sellers = await (
+      repo as unknown as { distinctSellers: () => Promise<readonly string[]> }
+    ).distinctSellers();
+
+    // Must include our two test sellers (prod rows may add more).
+    expect(sellers).toContain("Alma");
+    expect(sellers).toContain("Zelda");
+
+    // Global alphabetical order (ASC) — if Alma or Zelda are both present,
+    // Alma must appear before Zelda.
+    const almaIdx = sellers.indexOf("Alma");
+    const zeldaIdx = sellers.indexOf("Zelda");
+    expect(almaIdx).toBeLessThan(zeldaIdx);
+
+    // No duplicates even though we inserted two Alma rows.
+    const almaCount = sellers.filter((s) => s === "Alma").length;
+    expect(almaCount).toBe(1);
+  });
+
   it("upsert persists a full classification payload with jsonb warnings", async () => {
     const email = "test-full@example.com";
     const full: NewClient = baseClient({

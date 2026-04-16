@@ -54,4 +54,12 @@ export interface ClientRepository {
    * table order). Absent filters → no constraint on that column.
    */
   findAll(filters?: ClientFilters): Promise<readonly Client[]>;
+
+  /**
+   * Every unique `assignedSeller` present in the `clients` table, ordered
+   * alphabetically (ASC). Used to populate the "Vendedor" dropdown in the
+   * global filter strip (RF3.2) — we derive the list from real data
+   * instead of hardcoding because seller rosters drift over time.
+   */
+  distinctSellers(): Promise<readonly string[]>;
 }

@@ -1,16 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import type { ClientFilters } from "@/clients/application/client-repository";
 import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
+import { parseFiltersFromSearchParams } from "@/shared/filters/parse-filters";
 
 /**
  * GET /api/clients — list endpoint for the dashboard table (PRD §RF3.3) and
  * the filter strip (§RF3.2). Server-rendered (§RF3.1) so opening the
  * dashboard always shows fresh data and the charts + table share one view.
  *
- * Query params (all optional):
- *   assignedSeller, industry, companySize, sentiment, search — strings
- *   closed — 'true' | 'false' (malformed → ignored, treated as unset)
+ * Query params (all optional): see
+ * {@link parseFiltersFromSearchParams} — that helper is the single source
+ * of truth for the URL contract (`vendor`, `industry`, `size`, `closed`,
+ * `sentiment`, `search`).
  *
  * Response: { clients: Client[], total: number }.
  *
@@ -26,7 +27,7 @@ export const runtime = "nodejs";
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const filters = parseFilters(request.nextUrl.searchParams);
+    const filters = parseFiltersFromSearchParams(request.nextUrl.searchParams);
     const repo = createDrizzleClientRepository();
     const rows = await repo.findAll(filters);
     return NextResponse.json({ clients: rows, total: rows.length });
@@ -34,24 +35,4 @@ export async function GET(request: NextRequest): Promise<Response> {
     console.error("[GET /api/clients] error:", err);
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
-}
-
-function parseFilters(sp: URLSearchParams): ClientFilters {
-  const filters: Record<string, string | boolean> = {};
-  for (const key of [
-    "assignedSeller",
-    "industry",
-    "companySize",
-    "sentiment",
-    "search",
-  ] as const) {
-    const value = sp.get(key);
-    if (value !== null && value.length > 0) filters[key] = value;
-  }
-  const closed = sp.get("closed");
-  if (closed === "true") filters.closed = true;
-  else if (closed === "false") filters.closed = false;
-  // Any other value → ignore, so malformed inputs don't silently downgrade
-  // to `closed=false`.
-  return filters as ClientFilters;
 }

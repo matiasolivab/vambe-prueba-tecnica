@@ -1,4 +1,7 @@
-import { createMetricsCalculator } from "@/analytics/application/metrics-calculator";
+import {
+  createMetricsCalculator,
+  type MetricFilters,
+} from "@/analytics/application/metrics-calculator";
 import { SellersBarChart } from "@/analytics/ui/sellers-bar-chart";
 import { SellersIndustryTable } from "@/analytics/ui/sellers-industry-table";
 import {
@@ -13,12 +16,19 @@ import {
  * §8.2 — Performance de vendedores. Server Component: issues two parallel
  * reads against Neon, then hands plain JSON to the Client chart while the
  * crosstab table renders inline (no `"use client"` needed).
+ *
+ * Accepts global {@link MetricFilters} (RF3.2) — when present, every
+ * aggregation is scoped to the filtered subset.
  */
-export async function SellersSection() {
+export async function SellersSection({
+  filters,
+}: {
+  readonly filters?: MetricFilters;
+} = {}) {
   const calc = createMetricsCalculator();
   const [ranking, byIndustry] = await Promise.all([
-    calc.sellerRanking(),
-    calc.sellerByIndustry(),
+    calc.sellerRanking(filters),
+    calc.sellerByIndustry(filters),
   ]);
 
   return (

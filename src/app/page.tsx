@@ -3,6 +3,7 @@ import { CloseAnalysis } from "@/analytics/ui/close-analysis";
 import { KpiTile } from "@/analytics/ui/kpi-tile";
 import { ObjectionsSection } from "@/analytics/ui/objections-section";
 import { SellersSection } from "@/analytics/ui/sellers-section";
+import { ClientsSection } from "@/clients/ui/clients-section";
 
 // KPIs must reflect live Neon data on every request — no ISR, no static cache.
 export const dynamic = "force-dynamic";
@@ -64,6 +65,9 @@ export default async function DashboardPage() {
         </section>
         <section className="mt-10">
           <ObjectionsSection />
+        </section>
+        <section className="mt-10">
+          <ClientsSection />
         </section>
       </div>
     </main>

@@ -12,7 +12,10 @@ describe("CLASSIFIER_VERSION", () => {
     expect(CLASSIFIER_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
-  it("starts at 1.0.0 for the first classifier release", () => {
-    expect(CLASSIFIER_VERSION).toBe("1.0.0");
+  it("stays on the 1.x major line (minor bumps allowed per ARCHITECTURE §13 rule 13)", () => {
+    // The major version is the stable contract for persisted rows in the DB —
+    // only a breaking classifier change should bump it. Minor bumps track
+    // prompt iterations (1.0.0 → 1.1.0 → 1.2.0 …) and are expected.
+    expect(CLASSIFIER_VERSION).toMatch(/^1\.\d+\.\d+$/);
   });
 });

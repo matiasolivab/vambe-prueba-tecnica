@@ -16,7 +16,10 @@ import {
   type Classification,
 } from "@/classification/domain/schema";
 import { createOpenAIClient } from "@/classification/infrastructure/openai-client";
-import { PromptBuilder } from "@/classification/infrastructure/prompt-builder";
+import {
+  PromptBuilder,
+  type FewShotExample,
+} from "@/classification/infrastructure/prompt-builder";
 import { TiktokenTokenizer } from "@/classification/infrastructure/tiktoken-tokenizer";
 import type { Logger } from "@/shared/infrastructure/logger";
 
@@ -69,6 +72,16 @@ interface GroundTruthFile {
   readonly samples: readonly GroundTruthSample[];
 }
 
+interface FewShotFileEntry {
+  readonly sourceEmail: string;
+  readonly transcript: string;
+  readonly classification: FewShotExample["classification"];
+}
+
+interface FewShotFile {
+  readonly examples: readonly FewShotFileEntry[];
+}
+
 type CategoricalDimension =
   | "industry"
   | "companySize"
@@ -110,6 +123,16 @@ function loadGroundTruth(): readonly GroundTruthSample[] {
   const raw = readFileSync(path, "utf-8");
   const parsed = JSON.parse(raw) as GroundTruthFile;
   return parsed.samples;
+}
+
+function loadFewShots(): readonly FewShotExample[] {
+  const path = resolve(process.cwd(), "tests/fixtures/few-shots.json");
+  const raw = readFileSync(path, "utf-8");
+  const parsed = JSON.parse(raw) as FewShotFile;
+  return parsed.examples.map((entry) => ({
+    transcript: entry.transcript,
+    classification: entry.classification,
+  }));
 }
 
 function computeAccuracy(
@@ -154,7 +177,8 @@ describe.skipIf(!RUN_GT)(
 
       tokenizer = new TiktokenTokenizer();
       const tokenBudget = new TokenBudgetService(tokenizer, noopLogger);
-      const promptBuilder = new PromptBuilder();
+      const fewShots = loadFewShots();
+      const promptBuilder = new PromptBuilder(fewShots);
       const validator = new ClassificationValidator();
       const llmClient = createOpenAIClient(apiKey, ClassificationSchema, {
         logger: noopLogger,

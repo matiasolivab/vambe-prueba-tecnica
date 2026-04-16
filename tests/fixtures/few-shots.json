@@ -1,0 +1,59 @@
+{
+  "note": "Few-shot examples for the classification prompt (PRD §12 Task 4.3). Transcripts are REAL rows from data/vambe_clients.csv that are NOT in tests/fixtures/ground-truth.json, so the model is never shown a test sample. The three samples are curated to collectively demonstrate the dimensions the baseline prompt struggled with: Mid-market sizing from volume signals, Manager-de-Área vs CEO/Fundador discrimination, Muy-Interesado closure cues, Variabilidad-Estacional pain-point, and Integración-Técnica as the root cause (not the symptom).",
+  "examples": [
+    {
+      "sourceEmail": "j.morales@example.com",
+      "sourceRow": 12,
+      "transcript": "Nuestra empresa de software ha estado creciendo rapidamente, y con ello, la cantidad de consultas de soporte tecnico que recibimos a diario. Aunque intentamos manejarlo internamente, el volumen ya supera los 250 mensajes diarios, lo cual es complicado para nuestro pequeño equipo. Conoci Vambe gracias a una publicacion en LinkedIn y me parecio una opcion interesante para automatizar estas interacciones sin comprometer la calidad del servicio. Valoramos especialmente la capacidad de Vambe para integrarse con nuestros sistemas de tickets existentes.",
+      "classification": {
+        "reasoning": "Señales: 'empresa de software' → Tecnología. Volumen 250 mensajes/día (~1750/sem) supera el umbral de 150/sem → Mid-market. Dolor principal es la INTEGRACIÓN con sistema de tickets existente (no el volumen per se) → Integración Técnica. Lenguaje corporativo impersonal ('nuestro pequeño equipo', 'nuestros sistemas') sin verbos posesivos de fundador → Manager de Área. Cierre positivo con interés explícito en integración → Muy Interesado. Timeline no explícito pero con intención de avance (valora integración, conoció por LinkedIn, evaluará) → Corto (2-8 sem). Sin objeción verbal → Ninguna. Tono positivo, proactivo y concreto → Positivo.",
+        "industry": "Tecnología",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Integración Técnica",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "Manager de Área",
+        "sentiment": "Positivo",
+        "needsSummary": "Empresa de software en crecimiento rápido que supera 250 mensajes diarios de soporte técnico, volumen que excede la capacidad del equipo interno. La motivación principal es automatizar la atención manteniendo calidad de servicio, con énfasis explícito en integración nativa con el sistema de tickets ya existente. Conocieron Vambe por LinkedIn. El caso de uso requiere compatibilidad técnica con el stack actual, no solo reducción de volumen — la integración es el requisito crítico para liberar al equipo sin degradar la experiencia del usuario.",
+        "nextSteps": "Programar demo con foco en integración nativa con sistema de tickets. Evaluar compatibilidad técnica con el stack actual. Definir piloto acotado a una categoría de consultas de soporte de alto volumen. Acordar métricas de éxito (tiempo de respuesta, deflección de tickets repetitivos) antes del rollout general."
+      }
+    },
+    {
+      "sourceEmail": "m.espinoza@example.com",
+      "sourceRow": 22,
+      "transcript": "Nuestra empresa de asesoría financiera ha enfrentado un incremento en las consultas de clientes interesados en inversiones internacionales. Desde que expandimos nuestro portafolio de servicios, las preguntas sobre regulaciones y oportunidades en distintos países han aumentado considerablemente. Normalmente manejamos alrededor de 150 interacciones semanales, pero en temporadas de alta demanda esto puede duplicarse. Conocí Vambe en un seminario de fintech y me llamó la atención su capacidad para automatizar respuestas complejas sin comprometer la precisión, algo crucial en nuestro sector.",
+      "classification": {
+        "reasoning": "Señales: 'asesoría financiera' + 'inversiones internacionales' → Servicios Financieros. Volumen 150 sem en base + se DUPLICA a 300 en picos (multi-país, operación internacional) → Mid-market. Dolor explícito en PICOS ('en temporadas de alta demanda esto puede duplicarse') → Variabilidad Estacional, no Volumen Repetitivo. Lenguaje corporativo ('nuestra empresa', 'expandimos nuestro portafolio') sin marca clara de fundador → Manager de Área. Cierre con interés concreto en la propuesta de valor específica (precisión en sector regulado) → Muy Interesado. Sin objeción explícita → Ninguna. Avance implícito → Corto (2-8 sem). Tono de valoración positiva → Positivo.",
+        "industry": "Servicios Financieros",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Variabilidad Estacional",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "Manager de Área",
+        "sentiment": "Positivo",
+        "needsSummary": "Firma de asesoría financiera con portafolio expandido a inversiones internacionales. Maneja aproximadamente 150 interacciones semanales en régimen normal, con duplicación a ~300 durante temporadas de alta demanda. Las consultas cubren regulaciones y oportunidades en distintos países, demandando precisión estricta por ser un sector regulado. Conocieron Vambe en un seminario de fintech. Buscan automatización que absorba los picos estacionales sin sacrificar exactitud en temas regulatorios sensibles.",
+        "nextSteps": "Programar demo enfocada en precisión en dominios regulados (regulaciones multi-país) y capacidad de absorber picos de volumen estacionales. Evaluar integración con herramientas internas de la asesoría. Definir piloto calendarizado alrededor del próximo pico de demanda. Acordar protocolo de escalación a humano para consultas regulatorias complejas."
+      }
+    },
+    {
+      "sourceEmail": "f.navarro@example.com",
+      "sourceRow": 20,
+      "transcript": "Nuestra tienda de productos organicos ha visto un crecimiento en las ventas online, lo que ha generado un aumento en las consultas sobre disponibilidad y envios. Durante las promociones, podemos llegar a recibir mas de 150 mensajes al dia. Escuche sobre Vambe en una charla sobre comercio electronico y me intereso la idea de automatizar la atencion al cliente. Valoramos la posibilidad de ofrecer respuestas rapidas y precisas sin perder la cercania con nuestros clientes.",
+      "classification": {
+        "reasoning": "Señales: 'tienda de productos organicos' con ventas online → Hogar/Sostenibilidad (productos orgánicos, no comodity). Volumen moderado con pico de ~150 msg/día durante promociones (operación local, sin multi-país) → PYME. Dolor en los PICOS de promociones, no en régimen base → Variabilidad Estacional. Lenguaje posesivo y escala pequeña ('nuestra tienda'), contexto de e-commerce artesanal → CEO/Fundador (dueño). Cierre con valoración explícita de propuesta de valor y cercanía → Muy Interesado. Sin objeción → Ninguna. Intención de avance → Corto (2-8 sem). Tono positivo y valorativo → Positivo.",
+        "industry": "Hogar/Sostenibilidad",
+        "companySize": "PYME",
+        "mainPainPoint": "Variabilidad Estacional",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Positivo",
+        "needsSummary": "Tienda de productos orgánicos en crecimiento en el canal online. Maneja un volumen moderado en régimen normal, pero durante promociones los mensajes superan los 150 diarios. Descubrieron Vambe en una charla de comercio electrónico. El caso de uso exige automatización que cubra los picos promocionales sin sacrificar la cercanía del tono con el cliente, valor central de la marca orgánica. Buscan respuestas rápidas y precisas preservando la voz artesanal.",
+        "nextSteps": "Programar demo alineada con el próximo ciclo promocional para validar capacidad de absorber el pico de volumen. Configurar y validar tono de marca orgánica en las respuestas automatizadas. Evaluar integración con la plataforma de e-commerce actual. Acordar métricas de éxito (tiempo de respuesta, consistencia de voz) antes del rollout general."
+      }
+    }
+  ]
+}

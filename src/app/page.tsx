@@ -1,5 +1,8 @@
 import { createMetricsCalculator } from "@/analytics/application/metrics-calculator";
+import { CloseAnalysis } from "@/analytics/ui/close-analysis";
 import { KpiTile } from "@/analytics/ui/kpi-tile";
+import { ObjectionsSection } from "@/analytics/ui/objections-section";
+import { SellersSection } from "@/analytics/ui/sellers-section";
 
 // KPIs must reflect live Neon data on every request — no ISR, no static cache.
 export const dynamic = "force-dynamic";
@@ -53,7 +56,15 @@ export default async function DashboardPage() {
           />
         </section>
 
-        {/* Phase 7.3-7.5 will add further sections below */}
+        <section className="mt-10">
+          <SellersSection />
+        </section>
+        <section className="mt-10">
+          <CloseAnalysis />
+        </section>
+        <section className="mt-10">
+          <ObjectionsSection />
+        </section>
       </div>
     </main>
   );

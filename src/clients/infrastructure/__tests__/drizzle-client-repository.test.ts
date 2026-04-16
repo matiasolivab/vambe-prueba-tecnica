@@ -166,6 +166,103 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
     );
   });
 
+  it("findAll() with no filters returns every test row ordered by createdAt DESC", async () => {
+    // Insert 3 test fixtures with staggered createdAt via explicit ordering
+    // (upsert order defines DB createdAt since we let the DB apply defaultNow()).
+    await repo.upsertByEmail(baseClient({ email: "test-findall-a@example.com", name: "Alpha" }));
+    // Small delay ensures timestamps are strictly ordered even when now() has
+    // millisecond resolution collisions.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await repo.upsertByEmail(baseClient({ email: "test-findall-b@example.com", name: "Bravo" }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await repo.upsertByEmail(baseClient({ email: "test-findall-c@example.com", name: "Charlie" }));
+    const all = await repo.findAll();
+    const mine = all.filter((r) => r.email.startsWith("test-findall-"));
+    expect(mine.map((r) => r.email)).toEqual([
+      "test-findall-c@example.com",
+      "test-findall-b@example.com",
+      "test-findall-a@example.com",
+    ]);
+  });
+
+  it("findAll({ search }) matches substring on name OR email (case-insensitive)", async () => {
+    await repo.upsertByEmail(
+      baseClient({ email: "test-search-match@example.com", name: "Ada Lovelace" }),
+    );
+    await repo.upsertByEmail(
+      baseClient({ email: "test-search-other@example.com", name: "Grace Hopper" }),
+    );
+    await repo.upsertByEmail(
+      baseClient({ email: "test-search-ADA-2@example.com", name: "Unrelated" }),
+    );
+    // Matches via email substring (the third row) and via name substring (the
+    // first row). Case-insensitive — lowercase query hits uppercase ADA.
+    const rows = await repo.findAll({ search: "ada" });
+    const emails = rows.map((r) => r.email);
+    expect(emails).toContain("test-search-match@example.com");
+    expect(emails).toContain("test-search-ADA-2@example.com");
+    expect(emails).not.toContain("test-search-other@example.com");
+  });
+
+  it("findAll({ closed: true }) returns only closed rows", async () => {
+    await repo.upsertByEmail(
+      baseClient({ email: "test-closed-yes@example.com", closed: true }),
+    );
+    await repo.upsertByEmail(
+      baseClient({ email: "test-closed-no@example.com", closed: false }),
+    );
+    const rows = await repo.findAll({ closed: true });
+    const mine = rows.filter((r) => r.email.startsWith("test-closed-"));
+    expect(mine.every((r) => r.closed === true)).toBe(true);
+    expect(mine.map((r) => r.email)).toContain("test-closed-yes@example.com");
+    expect(mine.map((r) => r.email)).not.toContain("test-closed-no@example.com");
+  });
+
+  it("findAll({ assignedSeller, industry, closed }) ANDs filters together", async () => {
+    await repo.upsertByEmail(
+      baseClient({
+        email: "test-and-match@example.com",
+        assignedSeller: "Vera",
+        industry: "Retail",
+        closed: true,
+      }),
+    );
+    await repo.upsertByEmail(
+      baseClient({
+        email: "test-and-miss-seller@example.com",
+        assignedSeller: "Otro",
+        industry: "Retail",
+        closed: true,
+      }),
+    );
+    await repo.upsertByEmail(
+      baseClient({
+        email: "test-and-miss-industry@example.com",
+        assignedSeller: "Vera",
+        industry: "SaaS",
+        closed: true,
+      }),
+    );
+    await repo.upsertByEmail(
+      baseClient({
+        email: "test-and-miss-closed@example.com",
+        assignedSeller: "Vera",
+        industry: "Retail",
+        closed: false,
+      }),
+    );
+    const rows = await repo.findAll({
+      assignedSeller: "Vera",
+      industry: "Retail",
+      closed: true,
+    });
+    const emails = rows.map((r) => r.email);
+    expect(emails).toContain("test-and-match@example.com");
+    expect(emails).not.toContain("test-and-miss-seller@example.com");
+    expect(emails).not.toContain("test-and-miss-industry@example.com");
+    expect(emails).not.toContain("test-and-miss-closed@example.com");
+  });
+
   it("upsert persists a full classification payload with jsonb warnings", async () => {
     const email = "test-full@example.com";
     const full: NewClient = baseClient({

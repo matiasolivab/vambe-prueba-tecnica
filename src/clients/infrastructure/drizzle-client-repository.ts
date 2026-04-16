@@ -1,8 +1,11 @@
 import { neon } from "@neondatabase/serverless";
-import { eq, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
 
-import type { ClientRepository } from "../application/client-repository";
+import type {
+  ClientFilters,
+  ClientRepository,
+} from "../application/client-repository";
 import { clients, type Client, type NewClient } from "./db/schema";
 
 /**
@@ -78,6 +81,49 @@ export class DrizzleClientRepository implements ClientRepository {
     return row?.count ?? 0;
   }
 
+  public async findAll(
+    filters?: ClientFilters,
+  ): Promise<readonly Client[]> {
+    const where = this.buildWhere(filters);
+    return this.db
+      .select()
+      .from(clients)
+      .where(where)
+      .orderBy(desc(clients.createdAt));
+  }
+
+  private buildWhere(filters?: ClientFilters): SQL | undefined {
+    if (!filters) return undefined;
+    const conds: SQL[] = [];
+    if (filters.assignedSeller !== undefined) {
+      conds.push(eq(clients.assignedSeller, filters.assignedSeller));
+    }
+    if (filters.industry !== undefined) {
+      conds.push(eq(clients.industry, filters.industry));
+    }
+    if (filters.companySize !== undefined) {
+      conds.push(eq(clients.companySize, filters.companySize));
+    }
+    if (filters.closed !== undefined) {
+      conds.push(eq(clients.closed, filters.closed));
+    }
+    if (filters.sentiment !== undefined) {
+      conds.push(eq(clients.sentiment, filters.sentiment));
+    }
+    if (filters.search !== undefined && filters.search.length > 0) {
+      // RF3.4 — name OR email, case-insensitive substring. `ilike` is
+      // Postgres-native; `%` is literal inside the pattern.
+      const pattern = `%${filters.search}%`;
+      const nameMatch = ilike(clients.name, pattern);
+      const emailMatch = ilike(clients.email, pattern);
+      // `or(a, b)` returns SQL | undefined when any arg is undefined;
+      // both branches are concrete so the cast is safe.
+      conds.push(or(nameMatch, emailMatch) as SQL);
+    }
+    if (conds.length === 0) return undefined;
+    if (conds.length === 1) return conds[0];
+    return and(...conds);
+  }
 }
 
 /**

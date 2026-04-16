@@ -4,6 +4,7 @@ import { KpiTile } from "@/analytics/ui/kpi-tile";
 import { ObjectionsSection } from "@/analytics/ui/objections-section";
 import { SellersSection } from "@/analytics/ui/sellers-section";
 import { ClientsSection } from "@/clients/ui/clients-section";
+import UploadButton from "@/ingestion/ui/upload-button";
 
 // KPIs must reflect live Neon data on every request — no ISR, no static cache.
 export const dynamic = "force-dynamic";
@@ -25,13 +26,16 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <header className="mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Vambe · Dashboard
-          </h1>
-          <p className="text-zinc-400 mt-2">
-            Categorización automática de transcripciones de ventas
-          </p>
+        <header className="mb-10 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Vambe · Dashboard
+            </h1>
+            <p className="text-zinc-400 mt-2">
+              Categorización automática de transcripciones de ventas
+            </p>
+          </div>
+          <UploadButton />
         </header>
 
         <section

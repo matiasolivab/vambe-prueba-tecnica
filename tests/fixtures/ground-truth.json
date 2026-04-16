@@ -1,0 +1,198 @@
+{
+  "$schema": "./ground-truth.schema.json",
+  "version": "1.0.0",
+  "createdAt": "2026-04-16",
+  "note": "Manually curated ground truth for classifier accuracy testing (PRD §12 Task 4.1). Each sample: transcript input + expected classification (8 categorical + 2 qualitative). `humanReasoning` documents curation rationale, is NOT compared against the LLM's own `reasoning` field. Task 4.2 asserts ≥80% accuracy per categorical dimension.",
+  "samples": [
+    {
+      "email": "c.perez@example.com",
+      "name": "Carlos Perez",
+      "closedInCsv": true,
+      "transcript": "Gracias por la reunion. En nuestra empresa, que se enfoca en servicios financieros, hemos notado que la carga de trabajo en el area de atencion al cliente ha incrementado significativamente desde que expandimos nuestras operaciones internacionales. No fue hasta que un colega menciono Vambe en una conferencia de tecnologia que consideramos automatizar parte del proceso. Nuestro equipo actual se enfrenta a cerca de 500 interacciones semanales, principalmente consultas repetitivas que creemos podrían ser automáticas. Esta posible solucion no solo reduciria la carga operativa, sino que tambien mejoraria la experiencia del cliente, ya que las respuestas serian mas rapidas y precisas.",
+      "expected": {
+        "industry": "Servicios Financieros",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Volumen Repetitivo",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "Manager de Área",
+        "sentiment": "Positivo",
+        "needsSummary": "Empresa de servicios financieros con operaciones internacionales recientemente expandidas. El área de atención al cliente maneja aproximadamente 500 interacciones semanales, en su mayoría consultas repetitivas que consideran automatizables. Conocieron Vambe a través de un colega en una conferencia de tecnología. La propuesta de valor que buscan es doble: reducir la carga operativa del equipo y simultáneamente mejorar la experiencia del cliente mediante respuestas más rápidas y precisas. No mencionan objeciones explícitas ni timeline puntual, pero el cierre de la reunión fue positivo y el decisor parece operar a nivel de management con visión sobre impacto en operaciones internacionales.",
+        "nextSteps": "Acordar demostración del producto con foco en automatización de consultas financieras repetitivas a escala internacional. Evaluar integración con herramientas internas del área de atención al cliente y confirmar soporte multi-idioma/multi-zona horaria para la expansión. Discutir dimensionamiento para el volumen de 500 interacciones semanales y compartir caso de cliente similar en servicios financieros. Definir piloto acotado antes del rollout general."
+      },
+      "humanReasoning": "Servicios financieros con operación internacional expandida (Mid-market). Pain explícito: 500 consultas repetitivas/sem. Cerrada con sentimiento positivo, señal alta, sin objeciones verbalizadas. Decisor parece management operativo por lenguaje ('nuestro equipo actual') sin señales de ser fundador."
+    },
+    {
+      "email": "m.lopez@example.com",
+      "name": "Maria Lopez",
+      "closedInCsv": true,
+      "transcript": "Durante nuestra conversacion, comente que nuestra tienda online de articulos deportivos ha tenido dificultades para manejar el volumen de consultas sobre envios y devoluciones, especialmente durante las promociones. No manejamos un volumen gigantesco, pero en epocas pico podemos llegar a 300 mensajes en un dia. Buscando soluciones en Google, encontre Vambe y me intereso su enfoque hacia la mejora de la experiencia del cliente. Lo que mas nos llamo la atencion fue la capacidad de personalizar las respuestas, manteniendo un tono acorde con nuestra marca deportiva.",
+      "expected": {
+        "industry": "E-commerce",
+        "companySize": "PYME",
+        "mainPainPoint": "Volumen Repetitivo",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Positivo",
+        "needsSummary": "Tienda de e-commerce del sector deportivo enfrentando volumen pico de aproximadamente 300 mensajes diarios durante promociones, principalmente consultas repetitivas sobre envíos y devoluciones. Descubrieron Vambe buscando soluciones en Google. El atractivo principal que perciben es la capacidad de personalizar respuestas manteniendo el tono acorde con la marca deportiva, evitando que la automatización sacrifique cercanía con el cliente. No manejan volúmenes gigantescos en condiciones normales, pero los picos promocionales saturan al equipo actual.",
+        "nextSteps": "Avanzar con piloto enfocado en consultas sobre envíos y devoluciones, alineado con el próximo ciclo promocional de alta demanda. Configurar y validar el tono de marca deportiva en las respuestas automatizadas. Evaluar integración con plataforma de e-commerce actual y definir métricas de éxito (tiempo de respuesta, consistencia de voz, satisfacción del cliente). Acordar timeline de implementación previo a próxima promoción clave."
+      },
+      "humanReasoning": "E-commerce deportivo (PYME por volumen moderado declarado). Pain: volumen pico 300/día durante promociones. Cerró con señal alta. Lenguaje posesivo ('nuestra marca', 'nuestra tienda') sugiere fundador-dueño. Motivación clave: preservar tono de marca al automatizar."
+    },
+    {
+      "email": "j.gonzalez@example.com",
+      "name": "Juan Gonzalez",
+      "closedInCsv": true,
+      "transcript": "Nuestra clinica ha crecido bastante este ultimo año, lo que ha incrementado el numero de consultas sobre disponibilidad de citas y tratamientos. La gestion manual ha resultado ser ineficiente, y aunque inicialmente dudamos sobre implementar tecnologia en salud, un colega en una conferencia sobre innovacion medica menciono Vambe como una opcion viable. Actualmente manejamos alrededor de 80 interacciones diarias. Estamos interesados en una solucion que pueda integrarse con nuestro sistema de citas y que respete la confidencialidad de la informacion de los pacientes.",
+      "expected": {
+        "industry": "Salud",
+        "companySize": "PYME",
+        "mainPainPoint": "Volumen Repetitivo",
+        "keyObjection": "Desconfianza Automatización",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Positivo",
+        "needsSummary": "Clínica en crecimiento sostenido durante el último año, con aproximadamente 80 interacciones diarias orientadas a disponibilidad de citas y consultas sobre tratamientos. La gestión manual se volvió ineficiente a medida que escaló el volumen. El caso de uso requiere dos capacidades clave: integración fluida con el sistema de citas existente y preservación estricta de la confidencialidad de la información de los pacientes. Inicialmente mostraron escepticismo hacia la implementación de tecnología en el sector salud, pero superaron esa reserva al conocer Vambe en una conferencia de innovación médica.",
+        "nextSteps": "Evaluar integración técnica con el sistema de gestión de citas de la clínica. Revisar garantías de confidencialidad y cumplimiento normativo en el manejo de datos de pacientes antes del despliegue. Definir piloto acotado con un subconjunto de consultas de baja sensibilidad clínica (disponibilidad de horarios) antes de escalar a tratamientos. Acordar siguientes pasos con revisión legal."
+      },
+      "humanReasoning": "Salud (clínica PYME). Pain: gestión manual saturada (80 interacciones diarias). Objeción inicial de desconfianza automatización superada en la reunión — el closed=1 lo confirma. Confidencialidad es preocupación explícita pero no bloqueante. Dueño/director de clínica como decisor por lenguaje."
+    },
+    {
+      "email": "a.martinez@example.com",
+      "name": "Ana Martinez",
+      "closedInCsv": true,
+      "transcript": "Como startup tecnologica, el manejo de la relacion con nuestros usuarios se ha vuelto cada vez mas desafiante. La idea de implementar una solucion como Vambe surgio despues de asistir a un evento de networking donde otros fundadores compartieron experiencias positivas. Aunque somos un equipo pequeño, las interacciones con nuestros clientes han crecido exponencialmente en los ultimos meses. La flexibilidad de Vambe para adaptarse a nuestras necesidades especificas y la posibilidad de integracion con nuestras plataformas actuales son aspectos que valoramos mucho.",
+      "expected": {
+        "industry": "Tecnología",
+        "companySize": "Startup",
+        "mainPainPoint": "Equipo Saturado",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Positivo",
+        "needsSummary": "Startup tecnológica con equipo pequeño enfrentando crecimiento exponencial en interacciones con usuarios. Descubrieron Vambe en un evento de networking de fundadores donde otros emprendedores compartieron experiencias positivas. El caso de uso pone énfasis en dos aspectos: flexibilidad de la plataforma para adaptarse a necesidades específicas de una startup en evolución, y capacidad de integración con las plataformas que el equipo ya opera. El equipo reducido hace particularmente crítica la automatización para mantener la calidad de la relación con los usuarios sin multiplicar headcount.",
+        "nextSteps": "Avanzar con demo focalizada en flexibilidad de configuración para contextos startup con requisitos que cambian rápido. Evaluar compatibilidad técnica con el stack actual y las plataformas que el equipo ya opera. Discutir modelo de precios escalable acorde al crecimiento de usuarios proyectado. Acordar piloto corto con un subconjunto de casos de uso priorizados y métricas claras de adopción."
+      },
+      "humanReasoning": "Startup tech explícitamente. Pain: equipo pequeño saturado por crecimiento exponencial. Cerrada con señal alta. Fundadora como decisora (contexto de networking con fundadores)."
+    },
+    {
+      "email": "l.rodriguez@example.com",
+      "name": "Luis Rodriguez",
+      "closedInCsv": true,
+      "transcript": "Trabajamos en el sector educativo y, durante los periodos de admision, el volumen de consultas que recibimos sobre programas y becas se dispara. Un compañero de trabajo menciono Vambe en una reunion interna, lo que nos hizo pensar en automatizar parte del proceso. Normalmente, gestionamos unas 50 consultas semanales, pero este numero puede triplicarse en temporadas de alta demanda. Nos interesa una solucion que pueda responder de manera eficiente y precisa, especialmente en temas sensibles como los requisitos de becas y los plazos de inscripcion.",
+      "expected": {
+        "industry": "Educación",
+        "companySize": "PYME",
+        "mainPainPoint": "Variabilidad Estacional",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "Manager de Área",
+        "sentiment": "Positivo",
+        "needsSummary": "Institución educativa con volumen de consultas altamente estacional: aproximadamente 50 consultas semanales en flujo normal, pero se triplica hasta cerca de 150 durante temporadas de admisión. Los temas críticos son programas académicos y becas, áreas donde la precisión y la sensibilidad en la respuesta son fundamentales. Conocieron Vambe a través de recomendación interna en reunión de equipo. Buscan automatización que sostenga la calidad de respuesta durante los picos sin degradar precisión en temas sensibles como plazos de inscripción y requisitos de becas.",
+        "nextSteps": "Avanzar con piloto calendarizado alrededor del próximo ciclo de admisiones para validar capacidad de absorber el pico de volumen (de 50 a 150 consultas semanales). Curar base de conocimiento específica sobre programas académicos, requisitos de becas y plazos de inscripción. Definir protocolo de escalación a humano para consultas complejas o de alta sensibilidad. Establecer métricas de precisión esperadas antes del rollout general."
+      },
+      "humanReasoning": "Educación (PYME). Pain estacional explícito (picos de admisión triplican el volumen). Cerrada con señal alta. Coordinador interno como decisor (reunión interna, no lenguaje de fundador)."
+    },
+    {
+      "email": "p.ramirez@example.com",
+      "name": "Paula Ramirez",
+      "closedInCsv": false,
+      "transcript": "En el sector de la logistica donde operamos, la demanda por actualizaciones en tiempo real de envios ha crecido. Aunque el volumen de interacciones no es uniforme, durante picos podemos llegar a 150 consultas diarias. Descubrimos Vambe gracias a un articulo en linea sobre automatizacion de procesos. La capacidad de proporcionar actualizaciones en tiempo real y gestionar incidencias de manera automatizada es algo que consideramos fundamental para mejorar la satisfaccion de nuestros clientes.",
+      "expected": {
+        "industry": "Logística",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Respuestas Lentas",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
+        "decisionMakerRole": "Manager de Área",
+        "sentiment": "Neutro",
+        "needsSummary": "Empresa de logística con volumen no uniforme de interacciones, alcanzando hasta 150 consultas diarias en picos operativos. Descubrieron Vambe a través de un artículo online sobre automatización de procesos. La necesidad clave que verbalizan es ofrecer actualizaciones de envíos en tiempo real y gestionar incidencias de forma automatizada — consideran esto fundamental para la satisfacción del cliente. No hay una objeción explícita contra la plataforma, pero tampoco compromiso claro de avance, sugiriendo una fase exploratoria temprana.",
+        "nextSteps": "Programar demo técnica con foco en capacidades de actualización en tiempo real de envíos y gestión automatizada de incidencias. Evaluar integraciones con sistemas de tracking y TMS ya existentes en la operación. Solicitar caso de uso comparable dentro del sector logística para validar el ajuste. Definir criterios de decisión internos (priorización de capacidades, presupuesto, plazos) antes de avanzar a propuesta formal."
+      },
+      "humanReasoning": "Logística (Mid-market por operación de envíos escalada). Pain: expectativa de tiempo real que no pueden cubrir. Fase evaluativa, sin cierre ni objeción explícita, sentimiento neutro/analítico. Manager operativo como decisor."
+    },
+    {
+      "email": "r.silva@example.com",
+      "name": "Roberto Silva",
+      "closedInCsv": true,
+      "transcript": "Nuestra firma de consultoria trabaja con multiples clientes internacionales, lo que genera una gran cantidad de interacciones diarias. Conocimos Vambe en una feria empresarial y nos intereso la posibilidad de optimizar nuestras comunicaciones mediante su tecnologia. Necesitamos una solucion que pueda adaptarse a distintos idiomas y zonas horarias, permitiendonos mantener un nivel de servicio consistente a nivel global.",
+      "expected": {
+        "industry": "Consultoría",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Volumen Repetitivo",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Positivo",
+        "needsSummary": "Firma de consultoría con cartera de clientes internacionales que genera un volumen diario alto de interacciones cruzando múltiples idiomas y zonas horarias. Descubrieron Vambe en una feria empresarial y el interés se centra en la capacidad de la plataforma para adaptarse a distintos idiomas y manejar el servicio consistentemente en una operación global. La motivación principal es optimizar comunicaciones sin sacrificar calidad ni consistencia, aprovechando automatización para sostener cobertura 24/7 sin escalar headcount internacional.",
+        "nextSteps": "Avanzar con demo enfocada en capacidades multi-idioma y manejo automatizado de zonas horarias. Evaluar integración con stack actual de comunicación y CRM de la firma. Definir piloto acotado a un subconjunto de clientes internacionales en distintas regiones para validar ajuste cultural y técnico. Acordar métricas de consistencia de servicio global y criterios de escalamiento al rollout completo."
+      },
+      "humanReasoning": "Consultoría internacional (Mid-market). Pain: volumen diario alto cruzando idiomas y zonas horarias. Cerrada con señal alta. Partner/socio de consultora como decisor probable (lenguaje de firma)."
+    },
+    {
+      "email": "v.soto@example.com",
+      "name": "Valentina Soto",
+      "closedInCsv": true,
+      "transcript": "Nuestra empresa de bienes raices esta buscando una forma de mejorar la comunicacion con los clientes potenciales que consultan por propiedades. Las consultas suelen ser sobre disponibilidad y detalles de propiedades, y actualmente manejamos unas 200 interacciones semanales. Conoci Vambe en una feria de tecnologia inmobiliaria y creo que podria ser la solucion que necesitamos. Nos interesa especialmente la capacidad de integrar la herramienta con nuestra base de datos de propiedades.",
+      "expected": {
+        "industry": "Real Estate",
+        "companySize": "PYME",
+        "mainPainPoint": "Integración Técnica",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Corto (2-8 sem)",
+        "buyingSignal": "Muy Interesado",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Positivo",
+        "needsSummary": "Empresa de bienes raíces con aproximadamente 200 interacciones semanales, predominantemente consultas sobre disponibilidad y detalles de propiedades de clientes potenciales. Descubrieron Vambe en una feria de tecnología inmobiliaria. El requisito técnico prioritario es la integración con su base de datos de propiedades para poder responder consultas específicas con información actualizada. El caso de uso es altamente estructurado — las preguntas son recurrentes pero requieren datos en vivo sobre inventario y características de cada propiedad.",
+        "nextSteps": "Avanzar con discovery técnico de la base de datos de propiedades para definir el alcance de la integración. Demostración de capacidades de respuesta con datos dinámicos (disponibilidad, precios, características). Definir piloto con un subconjunto de propiedades priorizadas. Acordar timeline de implementación acorde al ciclo comercial inmobiliario."
+      },
+      "humanReasoning": "Real Estate (PYME por operación moderada). Pain principal: integración técnica con BD de propiedades (las consultas existen y son manejables, el cuello de botella es el acceso a datos en vivo). Cerrada con señal alta. Líder de inmobiliaria como decisor."
+    },
+    {
+      "email": "c.leon@example.com",
+      "name": "Cristobal León",
+      "closedInCsv": false,
+      "transcript": "Nuestra empresa de energía renovable ha visto un aumento en las consultas sobre instalaciones y servicios de mantenimiento. Con la creciente demanda, el volumen de interacciones ha superado la capacidad de nuestro equipo de soporte. Asistí a un taller sobre tecnología aplicada a la energía y conocí Vambe, que nos llamó la atención por su capacidad para gestionar consultas técnicas y automatizar la programación de servicios.",
+      "expected": {
+        "industry": "Hogar/Sostenibilidad",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Equipo Saturado",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
+        "decisionMakerRole": "Manager de Área",
+        "sentiment": "Neutro",
+        "needsSummary": "Empresa de energía renovable enfrentando aumento de consultas sobre instalaciones y servicios de mantenimiento, con volumen que ya supera la capacidad del equipo de soporte. Descubrieron Vambe en un taller sobre tecnología aplicada al sector energético. El interés se centra en dos capacidades: gestión automatizada de consultas técnicas específicas del sector y automatización de la programación de servicios de mantenimiento. No se verbaliza objeción explícita, pero la conversación quedó en fase exploratoria sin compromiso de avance concreto.",
+        "nextSteps": "Programar demo técnica enfocada en gestión automatizada de consultas del sector energético y agenda de servicios de mantenimiento. Evaluar integración con sistema de gestión de trabajos y programación actual. Solicitar caso de uso comparable en energía renovable u otra vertical técnica con requisitos similares. Definir criterios internos de avance a propuesta formal y presupuesto."
+      },
+      "humanReasoning": "Hogar/Sostenibilidad (energía renovable, Mid-market). Pain: equipo de soporte saturado. Fase evaluativa sin cierre. Manager operativo como decisor (lenguaje 'nuestro equipo de soporte' sin marca de fundador). Sentimiento neutro por tono informativo."
+    },
+    {
+      "email": "g.mendez@example.com",
+      "name": "Gabriel Mendez",
+      "closedInCsv": false,
+      "transcript": "Nuestra empresa de arquitectura ha recibido un aumento significativo en las consultas sobre proyectos personalizados, particularmente desde que comenzamos a expandir nuestra cartera de clientes a nivel internacional. Anteriormente, gestionábamos aproximadamente 120 interacciones semanales, pero con la reciente firma de nuevos contratos, este número ha aumentado en más de un 40%. Muchas de las consultas que recibimos son preguntas repetitivas sobre precios, materiales, tiempos de entrega y normativas específicas en distintas regiones, lo que ha comenzado a saturar a nuestro equipo de atención. En un seminario sobre automatización en la industria de la construcción y diseño, escuchamos sobre Vambe y nos llamó la atención su capacidad para segmentar y responder consultas técnicas de manera eficiente, liberando a nuestros arquitectos para enfocarse en los aspectos más estratégicos de cada proyecto.",
+      "expected": {
+        "industry": "Servicios Profesionales",
+        "companySize": "Mid-market",
+        "mainPainPoint": "Volumen Repetitivo",
+        "keyObjection": "Ninguna",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
+        "decisionMakerRole": "CEO/Fundador",
+        "sentiment": "Neutro",
+        "needsSummary": "Firma de arquitectura en expansión internacional cuya cartera de interacciones creció más del 40%, pasando de aproximadamente 120 a 170 interacciones semanales. Las consultas se concentran en precios, materiales, tiempos de entrega y normativas regionales — repetitivas pero con matices geográficos. Descubrieron Vambe en un seminario de automatización para construcción y diseño. El atractivo principal es la capacidad de segmentar y responder consultas técnicas, liberando al equipo de arquitectos para enfocarse en aspectos estratégicos de cada proyecto.",
+        "nextSteps": "Programar demo con foco en automatización de consultas técnicas segmentadas por región y tipo de proyecto. Evaluar cómo la plataforma maneja diferencias normativas entre mercados internacionales. Solicitar caso de uso en firma de arquitectura o construcción de tamaño similar. Definir criterios y plazos de decisión interna antes de avanzar a propuesta formal."
+      },
+      "humanReasoning": "Arquitectura internacional (Servicios Profesionales, Mid-market). Pain explícito: preguntas repetitivas (precios, materiales, tiempos, normativas). Fase evaluativa, señal moderada, sin objeción explícita. Partner de firma como decisor probable."
+    }
+  ]
+}

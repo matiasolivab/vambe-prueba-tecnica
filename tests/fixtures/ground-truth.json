@@ -1,8 +1,8 @@
 {
   "$schema": "./ground-truth.schema.json",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "createdAt": "2026-04-16",
-  "note": "Manually curated ground truth for classifier accuracy testing (PRD §12 Task 4.1). Each sample: transcript input + expected classification (8 categorical + 2 qualitative). `humanReasoning` documents curation rationale, is NOT compared against the LLM's own `reasoning` field. Task 4.2 asserts ≥80% accuracy per categorical dimension.",
+  "note": "v1.1.0 (2026-04-16): relabeled transcript-only — removed target leakage from CSV `closed` column. Previous v1.0.0 conflated future outcome with observable transcript signals on `purchaseTimeline`, `buyingSignal`, `sentiment`. Honest labels below tend toward `Indefinido`/`Evaluando`/`Neutro` as the majority, reflecting the actual uniform tone of the Vambe transcripts.",
   "samples": [
     {
       "email": "c.perez@example.com",
@@ -14,14 +14,14 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "Manager de Área",
-        "sentiment": "Positivo",
-        "needsSummary": "Empresa de servicios financieros con operaciones internacionales recientemente expandidas. El área de atención al cliente maneja aproximadamente 500 interacciones semanales, en su mayoría consultas repetitivas que consideran automatizables. Conocieron Vambe a través de un colega en una conferencia de tecnología. La propuesta de valor que buscan es doble: reducir la carga operativa del equipo y simultáneamente mejorar la experiencia del cliente mediante respuestas más rápidas y precisas. No mencionan objeciones explícitas ni timeline puntual, pero el cierre de la reunión fue positivo y el decisor parece operar a nivel de management con visión sobre impacto en operaciones internacionales.",
+        "sentiment": "Neutro",
+        "needsSummary": "Empresa de servicios financieros con operaciones internacionales recientemente expandidas. El área de atención al cliente maneja aproximadamente 500 interacciones semanales, en su mayoría consultas repetitivas que consideran automatizables. Conocieron Vambe a través de un colega en una conferencia de tecnología. La propuesta de valor que buscan es doble: reducir la carga operativa del equipo y simultáneamente mejorar la experiencia del cliente mediante respuestas más rápidas y precisas. No se verbalizan objeciones explícitas ni timeline puntual; el decisor parece operar a nivel de management con visión sobre impacto en operaciones internacionales.",
         "nextSteps": "Acordar demostración del producto con foco en automatización de consultas financieras repetitivas a escala internacional. Evaluar integración con herramientas internas del área de atención al cliente y confirmar soporte multi-idioma/multi-zona horaria para la expansión. Discutir dimensionamiento para el volumen de 500 interacciones semanales y compartir caso de cliente similar en servicios financieros. Definir piloto acotado antes del rollout general."
       },
-      "humanReasoning": "Servicios financieros con operación internacional expandida (Mid-market). Pain explícito: 500 consultas repetitivas/sem. Cerrada con sentimiento positivo, señal alta, sin objeciones verbalizadas. Decisor parece management operativo por lenguaje ('nuestro equipo actual') sin señales de ser fundador."
+      "humanReasoning": "Servicios financieros con operación internacional expandida (Mid-market). Pain explícito en el transcript: 500 consultas repetitivas/sem. Transcript describe interés exploratorio ('consideramos automatizar', 'posible solucion', 'creemos podrían') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de que closed=1 en el CSV. Decisor parece management operativo por lenguaje ('nuestro equipo actual') sin señales de fundador."
     },
     {
       "email": "m.lopez@example.com",
@@ -31,16 +31,16 @@
       "expected": {
         "industry": "E-commerce",
         "companySize": "PYME",
-        "mainPainPoint": "Volumen Repetitivo",
+        "mainPainPoint": "Variabilidad Estacional",
         "keyObjection": "Ninguna",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "CEO/Fundador",
-        "sentiment": "Positivo",
-        "needsSummary": "Tienda de e-commerce del sector deportivo enfrentando volumen pico de aproximadamente 300 mensajes diarios durante promociones, principalmente consultas repetitivas sobre envíos y devoluciones. Descubrieron Vambe buscando soluciones en Google. El atractivo principal que perciben es la capacidad de personalizar respuestas manteniendo el tono acorde con la marca deportiva, evitando que la automatización sacrifique cercanía con el cliente. No manejan volúmenes gigantescos en condiciones normales, pero los picos promocionales saturan al equipo actual.",
-        "nextSteps": "Avanzar con piloto enfocado en consultas sobre envíos y devoluciones, alineado con el próximo ciclo promocional de alta demanda. Configurar y validar el tono de marca deportiva en las respuestas automatizadas. Evaluar integración con plataforma de e-commerce actual y definir métricas de éxito (tiempo de respuesta, consistencia de voz, satisfacción del cliente). Acordar timeline de implementación previo a próxima promoción clave."
+        "sentiment": "Neutro",
+        "needsSummary": "Tienda de e-commerce del sector deportivo que enfrenta picos estacionales: volumen normal bajo pero hasta 300 mensajes diarios durante promociones, principalmente consultas sobre envíos y devoluciones. Descubrieron Vambe buscando soluciones en Google. El atractivo principal que perciben es la capacidad de personalizar respuestas manteniendo el tono acorde con la marca deportiva, evitando que la automatización sacrifique cercanía con el cliente. No manejan volúmenes gigantescos en condiciones normales, pero los picos promocionales saturan al equipo actual.",
+        "nextSteps": "Proponer piloto enfocado en consultas sobre envíos y devoluciones, alineado con el próximo ciclo promocional de alta demanda. Configurar y validar el tono de marca deportiva en las respuestas automatizadas. Evaluar integración con plataforma de e-commerce actual y definir métricas de éxito (tiempo de respuesta, consistencia de voz, satisfacción del cliente). Discutir timeline de implementación previo a próxima promoción clave."
       },
-      "humanReasoning": "E-commerce deportivo (PYME por volumen moderado declarado). Pain: volumen pico 300/día durante promociones. Cerró con señal alta. Lenguaje posesivo ('nuestra marca', 'nuestra tienda') sugiere fundador-dueño. Motivación clave: preservar tono de marca al automatizar."
+      "humanReasoning": "E-commerce deportivo (PYME por volumen moderado declarado). Pain central transcript-only: picos explícitos 'durante las promociones' / 'epocas pico' — Variabilidad Estacional aplica más fielmente que Volumen Repetitivo (el cliente enmarca el dolor en la estacionalidad, no en la repetición). Lenguaje posesivo ('nuestra marca', 'nuestra tienda') sugiere fundador-dueño. Transcript muestra interés exploratorio ('me intereso', 'nos llamo la atencion') sin compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1 en el CSV."
     },
     {
       "email": "j.gonzalez@example.com",
@@ -52,14 +52,14 @@
         "companySize": "PYME",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Desconfianza Automatización",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "CEO/Fundador",
-        "sentiment": "Positivo",
-        "needsSummary": "Clínica en crecimiento sostenido durante el último año, con aproximadamente 80 interacciones diarias orientadas a disponibilidad de citas y consultas sobre tratamientos. La gestión manual se volvió ineficiente a medida que escaló el volumen. El caso de uso requiere dos capacidades clave: integración fluida con el sistema de citas existente y preservación estricta de la confidencialidad de la información de los pacientes. Inicialmente mostraron escepticismo hacia la implementación de tecnología en el sector salud, pero superaron esa reserva al conocer Vambe en una conferencia de innovación médica.",
+        "sentiment": "Neutro",
+        "needsSummary": "Clínica en crecimiento sostenido durante el último año, con aproximadamente 80 interacciones diarias orientadas a disponibilidad de citas y consultas sobre tratamientos. La gestión manual se volvió ineficiente a medida que escaló el volumen. El caso de uso requiere dos capacidades clave: integración fluida con el sistema de citas existente y preservación estricta de la confidencialidad de la información de los pacientes. Mostraron escepticismo inicial hacia la implementación de tecnología en el sector salud, mitigado parcialmente tras conocer Vambe en una conferencia de innovación médica.",
         "nextSteps": "Evaluar integración técnica con el sistema de gestión de citas de la clínica. Revisar garantías de confidencialidad y cumplimiento normativo en el manejo de datos de pacientes antes del despliegue. Definir piloto acotado con un subconjunto de consultas de baja sensibilidad clínica (disponibilidad de horarios) antes de escalar a tratamientos. Acordar siguientes pasos con revisión legal."
       },
-      "humanReasoning": "Salud (clínica PYME). Pain: gestión manual saturada (80 interacciones diarias). Objeción inicial de desconfianza automatización superada en la reunión — el closed=1 lo confirma. Confidencialidad es preocupación explícita pero no bloqueante. Dueño/director de clínica como decisor por lenguaje."
+      "humanReasoning": "Salud (clínica PYME). Pain en transcript: 'gestion manual ha resultado ser ineficiente' con 80 interacciones diarias sobre citas y tratamientos → Volumen Repetitivo (la integración con sistema de citas es un REQUISITO del remedio, no el dolor central). Objeción explícita en el transcript: 'inicialmente dudamos sobre implementar tecnologia en salud' → Desconfianza Automatización (queda verbalizada aun si se mitigó). Transcript muestra interés exploratorio ('Estamos interesados') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1. Dueño/director de clínica como decisor por lenguaje ('Nuestra clinica')."
     },
     {
       "email": "a.martinez@example.com",
@@ -71,14 +71,14 @@
         "companySize": "Startup",
         "mainPainPoint": "Equipo Saturado",
         "keyObjection": "Ninguna",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "CEO/Fundador",
-        "sentiment": "Positivo",
+        "sentiment": "Neutro",
         "needsSummary": "Startup tecnológica con equipo pequeño enfrentando crecimiento exponencial en interacciones con usuarios. Descubrieron Vambe en un evento de networking de fundadores donde otros emprendedores compartieron experiencias positivas. El caso de uso pone énfasis en dos aspectos: flexibilidad de la plataforma para adaptarse a necesidades específicas de una startup en evolución, y capacidad de integración con las plataformas que el equipo ya opera. El equipo reducido hace particularmente crítica la automatización para mantener la calidad de la relación con los usuarios sin multiplicar headcount.",
-        "nextSteps": "Avanzar con demo focalizada en flexibilidad de configuración para contextos startup con requisitos que cambian rápido. Evaluar compatibilidad técnica con el stack actual y las plataformas que el equipo ya opera. Discutir modelo de precios escalable acorde al crecimiento de usuarios proyectado. Acordar piloto corto con un subconjunto de casos de uso priorizados y métricas claras de adopción."
+        "nextSteps": "Proponer demo focalizada en flexibilidad de configuración para contextos startup con requisitos que cambian rápido. Evaluar compatibilidad técnica con el stack actual y las plataformas que el equipo ya opera. Discutir modelo de precios escalable acorde al crecimiento de usuarios proyectado. Sugerir piloto corto con un subconjunto de casos de uso priorizados y métricas claras de adopción."
       },
-      "humanReasoning": "Startup tech explícitamente. Pain: equipo pequeño saturado por crecimiento exponencial. Cerrada con señal alta. Fundadora como decisora (contexto de networking con fundadores)."
+      "humanReasoning": "Startup tech explícitamente. Pain transcript-only: 'somos un equipo pequeño' con 'interacciones... han crecido exponencialmente' → Equipo Saturado. Fundadora como decisora (contexto 'evento de networking donde otros fundadores compartieron experiencias'). Transcript describe interés valorativo ('valoramos mucho') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
     },
     {
       "email": "l.rodriguez@example.com",
@@ -90,14 +90,14 @@
         "companySize": "PYME",
         "mainPainPoint": "Variabilidad Estacional",
         "keyObjection": "Ninguna",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "Manager de Área",
-        "sentiment": "Positivo",
+        "sentiment": "Neutro",
         "needsSummary": "Institución educativa con volumen de consultas altamente estacional: aproximadamente 50 consultas semanales en flujo normal, pero se triplica hasta cerca de 150 durante temporadas de admisión. Los temas críticos son programas académicos y becas, áreas donde la precisión y la sensibilidad en la respuesta son fundamentales. Conocieron Vambe a través de recomendación interna en reunión de equipo. Buscan automatización que sostenga la calidad de respuesta durante los picos sin degradar precisión en temas sensibles como plazos de inscripción y requisitos de becas.",
-        "nextSteps": "Avanzar con piloto calendarizado alrededor del próximo ciclo de admisiones para validar capacidad de absorber el pico de volumen (de 50 a 150 consultas semanales). Curar base de conocimiento específica sobre programas académicos, requisitos de becas y plazos de inscripción. Definir protocolo de escalación a humano para consultas complejas o de alta sensibilidad. Establecer métricas de precisión esperadas antes del rollout general."
+        "nextSteps": "Proponer piloto calendarizado alrededor del próximo ciclo de admisiones para validar capacidad de absorber el pico de volumen (de 50 a 150 consultas semanales). Curar base de conocimiento específica sobre programas académicos, requisitos de becas y plazos de inscripción. Definir protocolo de escalación a humano para consultas complejas o de alta sensibilidad. Establecer métricas de precisión esperadas antes del rollout general."
       },
-      "humanReasoning": "Educación (PYME). Pain estacional explícito (picos de admisión triplican el volumen). Cerrada con señal alta. Coordinador interno como decisor (reunión interna, no lenguaje de fundador)."
+      "humanReasoning": "Educación (PYME). Pain estacional explícito en el transcript ('periodos de admision', 'temporadas de alta demanda', volumen que 'se dispara' y 'puede triplicarse') → Variabilidad Estacional. Coordinador interno como decisor (lenguaje 'reunion interna' con 'compañero de trabajo', sin marca de fundador) → Manager de Área. Transcript describe interés exploratorio ('Nos interesa una solucion') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
     },
     {
       "email": "p.ramirez@example.com",
@@ -116,7 +116,7 @@
         "needsSummary": "Empresa de logística con volumen no uniforme de interacciones, alcanzando hasta 150 consultas diarias en picos operativos. Descubrieron Vambe a través de un artículo online sobre automatización de procesos. La necesidad clave que verbalizan es ofrecer actualizaciones de envíos en tiempo real y gestionar incidencias de forma automatizada — consideran esto fundamental para la satisfacción del cliente. No hay una objeción explícita contra la plataforma, pero tampoco compromiso claro de avance, sugiriendo una fase exploratoria temprana.",
         "nextSteps": "Programar demo técnica con foco en capacidades de actualización en tiempo real de envíos y gestión automatizada de incidencias. Evaluar integraciones con sistemas de tracking y TMS ya existentes en la operación. Solicitar caso de uso comparable dentro del sector logística para validar el ajuste. Definir criterios de decisión internos (priorización de capacidades, presupuesto, plazos) antes de avanzar a propuesta formal."
       },
-      "humanReasoning": "Logística (Mid-market por operación de envíos escalada). Pain: expectativa de tiempo real que no pueden cubrir. Fase evaluativa, sin cierre ni objeción explícita, sentimiento neutro/analítico. Manager operativo como decisor."
+      "humanReasoning": "Logística (Mid-market por operación de envíos escalada). Pain transcript-only: 'demanda por actualizaciones en tiempo real... ha crecido' como expectativa que no pueden cubrir → Respuestas Lentas. Manager operativo como decisor (lenguaje 'donde operamos' sin marca de fundador). Transcript describe interés valorativo ('consideramos fundamental') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto)."
     },
     {
       "email": "r.silva@example.com",
@@ -128,14 +128,14 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "CEO/Fundador",
-        "sentiment": "Positivo",
+        "sentiment": "Neutro",
         "needsSummary": "Firma de consultoría con cartera de clientes internacionales que genera un volumen diario alto de interacciones cruzando múltiples idiomas y zonas horarias. Descubrieron Vambe en una feria empresarial y el interés se centra en la capacidad de la plataforma para adaptarse a distintos idiomas y manejar el servicio consistentemente en una operación global. La motivación principal es optimizar comunicaciones sin sacrificar calidad ni consistencia, aprovechando automatización para sostener cobertura 24/7 sin escalar headcount internacional.",
-        "nextSteps": "Avanzar con demo enfocada en capacidades multi-idioma y manejo automatizado de zonas horarias. Evaluar integración con stack actual de comunicación y CRM de la firma. Definir piloto acotado a un subconjunto de clientes internacionales en distintas regiones para validar ajuste cultural y técnico. Acordar métricas de consistencia de servicio global y criterios de escalamiento al rollout completo."
+        "nextSteps": "Proponer demo enfocada en capacidades multi-idioma y manejo automatizado de zonas horarias. Evaluar integración con stack actual de comunicación y CRM de la firma. Discutir piloto acotado a un subconjunto de clientes internacionales en distintas regiones para validar ajuste cultural y técnico. Acordar métricas de consistencia de servicio global y criterios de escalamiento al rollout completo."
       },
-      "humanReasoning": "Consultoría internacional (Mid-market). Pain: volumen diario alto cruzando idiomas y zonas horarias. Cerrada con señal alta. Partner/socio de consultora como decisor probable (lenguaje de firma)."
+      "humanReasoning": "Consultoría internacional (Mid-market). Pain transcript-only: 'gran cantidad de interacciones diarias' cruzando idiomas y zonas horarias → Volumen Repetitivo (los idiomas/zonas horarias son un REQUISITO del remedio, no el dolor central). Partner/socio de consultora como decisor probable (lenguaje 'nuestra firma'). Transcript describe interés exploratorio ('nos intereso la posibilidad') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
     },
     {
       "email": "v.soto@example.com",
@@ -147,14 +147,14 @@
         "companySize": "PYME",
         "mainPainPoint": "Integración Técnica",
         "keyObjection": "Ninguna",
-        "purchaseTimeline": "Corto (2-8 sem)",
-        "buyingSignal": "Muy Interesado",
+        "purchaseTimeline": "Indefinido",
+        "buyingSignal": "Evaluando",
         "decisionMakerRole": "CEO/Fundador",
-        "sentiment": "Positivo",
+        "sentiment": "Neutro",
         "needsSummary": "Empresa de bienes raíces con aproximadamente 200 interacciones semanales, predominantemente consultas sobre disponibilidad y detalles de propiedades de clientes potenciales. Descubrieron Vambe en una feria de tecnología inmobiliaria. El requisito técnico prioritario es la integración con su base de datos de propiedades para poder responder consultas específicas con información actualizada. El caso de uso es altamente estructurado — las preguntas son recurrentes pero requieren datos en vivo sobre inventario y características de cada propiedad.",
-        "nextSteps": "Avanzar con discovery técnico de la base de datos de propiedades para definir el alcance de la integración. Demostración de capacidades de respuesta con datos dinámicos (disponibilidad, precios, características). Definir piloto con un subconjunto de propiedades priorizadas. Acordar timeline de implementación acorde al ciclo comercial inmobiliario."
+        "nextSteps": "Iniciar discovery técnico de la base de datos de propiedades para definir el alcance de la integración. Demostración de capacidades de respuesta con datos dinámicos (disponibilidad, precios, características). Proponer piloto con un subconjunto de propiedades priorizadas. Acordar timeline de implementación acorde al ciclo comercial inmobiliario."
       },
-      "humanReasoning": "Real Estate (PYME por operación moderada). Pain principal: integración técnica con BD de propiedades (las consultas existen y son manejables, el cuello de botella es el acceso a datos en vivo). Cerrada con señal alta. Líder de inmobiliaria como decisor."
+      "humanReasoning": "Real Estate (PYME por operación moderada). Pain principal transcript-only: 'Nos interesa especialmente la capacidad de integrar la herramienta con nuestra base de datos de propiedades' — el cliente verbaliza la integración con BD como requisito crítico → Integración Técnica. Líder de inmobiliaria como decisor (lenguaje 'Nuestra empresa de bienes raices'). Transcript describe interés condicional ('creo que podria ser', 'Nos interesa') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
     },
     {
       "email": "c.leon@example.com",
@@ -173,7 +173,7 @@
         "needsSummary": "Empresa de energía renovable enfrentando aumento de consultas sobre instalaciones y servicios de mantenimiento, con volumen que ya supera la capacidad del equipo de soporte. Descubrieron Vambe en un taller sobre tecnología aplicada al sector energético. El interés se centra en dos capacidades: gestión automatizada de consultas técnicas específicas del sector y automatización de la programación de servicios de mantenimiento. No se verbaliza objeción explícita, pero la conversación quedó en fase exploratoria sin compromiso de avance concreto.",
         "nextSteps": "Programar demo técnica enfocada en gestión automatizada de consultas del sector energético y agenda de servicios de mantenimiento. Evaluar integración con sistema de gestión de trabajos y programación actual. Solicitar caso de uso comparable en energía renovable u otra vertical técnica con requisitos similares. Definir criterios internos de avance a propuesta formal y presupuesto."
       },
-      "humanReasoning": "Hogar/Sostenibilidad (energía renovable, Mid-market). Pain: equipo de soporte saturado. Fase evaluativa sin cierre. Manager operativo como decisor (lenguaje 'nuestro equipo de soporte' sin marca de fundador). Sentimiento neutro por tono informativo."
+      "humanReasoning": "Hogar/Sostenibilidad (energía renovable, Mid-market). Pain transcript-only: 'el volumen de interacciones ha superado la capacidad de nuestro equipo de soporte' → Equipo Saturado. Manager operativo como decisor (lenguaje 'nuestro equipo de soporte' sin marca de fundador). Transcript describe interés valorativo ('nos llamó la atención') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto)."
     },
     {
       "email": "g.mendez@example.com",
@@ -192,7 +192,7 @@
         "needsSummary": "Firma de arquitectura en expansión internacional cuya cartera de interacciones creció más del 40%, pasando de aproximadamente 120 a 170 interacciones semanales. Las consultas se concentran en precios, materiales, tiempos de entrega y normativas regionales — repetitivas pero con matices geográficos. Descubrieron Vambe en un seminario de automatización para construcción y diseño. El atractivo principal es la capacidad de segmentar y responder consultas técnicas, liberando al equipo de arquitectos para enfocarse en aspectos estratégicos de cada proyecto.",
         "nextSteps": "Programar demo con foco en automatización de consultas técnicas segmentadas por región y tipo de proyecto. Evaluar cómo la plataforma maneja diferencias normativas entre mercados internacionales. Solicitar caso de uso en firma de arquitectura o construcción de tamaño similar. Definir criterios y plazos de decisión interna antes de avanzar a propuesta formal."
       },
-      "humanReasoning": "Arquitectura internacional (Servicios Profesionales, Mid-market). Pain explícito: preguntas repetitivas (precios, materiales, tiempos, normativas). Fase evaluativa, señal moderada, sin objeción explícita. Partner de firma como decisor probable."
+      "humanReasoning": "Arquitectura internacional (Servicios Profesionales, Mid-market). Pain explícito transcript-only: 'preguntas repetitivas sobre precios, materiales, tiempos de entrega y normativas' que 'ha comenzado a saturar a nuestro equipo' → Volumen Repetitivo (prioridad sobre Equipo Saturado porque la repetitividad es el driver primario que el cliente verbaliza). Partner de firma como decisor probable. Transcript describe interés valorativo ('nos llamó la atención') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto)."
     }
   ]
 }

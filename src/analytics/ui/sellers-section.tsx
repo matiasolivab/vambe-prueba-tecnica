@@ -29,14 +29,15 @@ export async function SellersSection({
           <SellersBarChart data={ranking} />
         </Subsection>
 
-        <Divider />
-
-        <Subsection
-          title="Cobertura por industria"
-          caption={coverageCaption(byIndustry)}
-        >
-          <SellersIndustryTable data={byIndustry} />
-        </Subsection>
+        <div className="hidden md:contents">
+          <Divider />
+          <Subsection
+            title="Cobertura por industria"
+            caption={coverageCaption(byIndustry)}
+          >
+            <SellersIndustryTable data={byIndustry} />
+          </Subsection>
+        </div>
 
         <LegendFooter />
       </CardContent>
@@ -83,7 +84,7 @@ function LegendFooter() {
     >
       <LegendSwatch label="Top del ranking" kind="accent" />
       <LegendSwatch label="Resto del ranking" kind="primary" />
-      <span className="inline-flex items-center gap-1.5">
+      <span className="hidden md:inline-flex items-center gap-1.5">
         <span
           aria-hidden
           className="inline-block h-3 w-6 rounded-sm ring-1 ring-inset ring-primary/40"
@@ -94,7 +95,7 @@ function LegendFooter() {
         />
         Celda ≥ 75% destacada
       </span>
-      <span className="ml-auto text-muted-foreground/80">
+      <span className="ml-auto hidden md:inline text-muted-foreground/80">
         Intensidad de celda = tasa de cierre
       </span>
     </footer>

@@ -14,18 +14,8 @@ export interface SellersIndustryTableProps {
   readonly data: readonly SellerByIndustryCell[];
 }
 
-/** Close-rate threshold above which a cell shows a ring/outline accent. */
 const HIGHLIGHT_THRESHOLD = 0.75;
 
-/**
- * Sellers × Industries crosstab (§8.2) as a heatmap.
- *
- * Each cell is tinted with the primary color at an intensity proportional
- * to its close rate (via `color-mix`), so the eye scans "where is each
- * seller strongest" in one pass. A `Total` column on the right shows the
- * per-seller aggregate. The first column (Vendedor) is sticky while the
- * rest scrolls horizontally — matters when there are 6+ industries.
- */
 export function SellersIndustryTable({ data }: SellersIndustryTableProps) {
   if (data.length === 0) {
     return (
@@ -98,8 +88,6 @@ export function SellersIndustryTable({ data }: SellersIndustryTableProps) {
   );
 }
 
-// --- cells ----------------------------------------------------------------
-
 interface HeatCellProps {
   readonly seller: string;
   readonly industry: string;
@@ -119,9 +107,6 @@ function HeatCell({ seller, industry, cell }: HeatCellProps) {
   }
 
   const isHot = cell.closeRate >= HIGHLIGHT_THRESHOLD;
-  // color-mix lets us fade the primary token (cyan) to transparent
-  // proportionally. Cap intensity at 0.9 so 100% cells aren't pure primary
-  // (which would clash with the foreground text).
   const intensity = Math.min(0.9, 0.08 + cell.closeRate * 0.72);
 
   return (
@@ -161,8 +146,6 @@ function TotalCell({
     </TableCell>
   );
 }
-
-// --- helpers --------------------------------------------------------------
 
 function uniqueSorted(values: readonly string[]): string[] {
   return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));

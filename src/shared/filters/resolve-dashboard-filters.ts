@@ -6,11 +6,6 @@ import {
   parseFiltersFromSearchParams,
 } from "./parse-filters";
 
-/**
- * Dashboard pages in Next 16 receive `searchParams` as a Promise. Awaiting
- * and parsing happens the same way in every page — centralise it here so
- * each `page.tsx` stays a 2-liner over what it actually renders.
- */
 export type DashboardSearchParams = Promise<{
   [key: string]: string | string[] | undefined;
 }>;

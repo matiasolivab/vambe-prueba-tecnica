@@ -19,34 +19,8 @@ import {
 } from "@/analytics/application/temporal-metrics";
 import { clients, type NewClient } from "@/clients/infrastructure/db/schema";
 
-/**
- * Integration tests for TemporalMetrics against real Neon Postgres.
- *
- * Design:
- *  - Scoped to a unique email prefix (`temporal-test-*@example.com`) so we
- *    never touch the seeded 57 rows or other test fixtures.
- *  - Fixtures span April 2026 anchor, March 2026 (previous), January 2026
- *    (in-window), and an out-of-window row. That layout exercises the
- *    12-month gap-fill, the MoM delta, and the tie-breakers simultaneously.
- *  - `keyObjection: 'Ninguna'` for closed rows mirrors the seed convention.
- */
-
 const hasDbUrl = Boolean(process.env.DATABASE_URL);
 
-// Anchor month (MAX(meeting_date)) = April 2026.
-// Distribution — columns: yearMonth | assignedSeller | industry | closed
-//   2026-04  Ana        Tecnología   true   (closed in April)
-//   2026-04  Ana        Tecnología   true   (closed in April)
-//   2026-04  Ana        Retail       false  (open in April)
-//   2026-04  Bruno      Tecnología   true   (closed in April — ties Ana at 2 but Ana wins on closeRate)
-//   2026-04  Bruno      Tecnología   false
-//   2026-04  Bruno      Tecnología   false
-//   2026-04  Bruno      Tecnología   false
-//   2026-03  Ana        Tecnología   true   (previous month)
-//   2026-03  Bruno      Retail       false
-//   2026-01  Ana        Tecnología   false  (12m window, in-range)
-//   2025-05  Ana        Tecnología   true   (12m window, far end)
-//   2025-04  Ana        Tecnología   false  (OUT of 12m window — should NOT appear in series)
 const FIXTURE: readonly NewClient[] = [
   {
     name: "T1",
@@ -244,11 +218,6 @@ const FIXTURE: readonly NewClient[] = [
 
 const FIXTURE_PREFIX = "temporal-test-%@example.com";
 
-/**
- * Narrow filter: email prefix + assignedSeller ∈ {Ana, Bruno}. The global
- * seed does NOT use these seller names, so once we also exclude non-fixture
- * email prefixes the result set is deterministic across parallel suites.
- */
 async function deleteFixture(rawDb: {
   execute: (query: ReturnType<typeof sql>) => Promise<unknown>;
 }): Promise<void> {
@@ -282,11 +251,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     await deleteFixture(rawDb);
   });
 
-  // The fixture plants unique `Ana`/`Bruno` sellers; every temporal query is
-  // scoped to that pair so concurrent writers touching `metrics-test-*` rows
-  // can't flake our assertions. Filtering by assignedSeller is enough: none
-  // of the seeded rows share these names (checked via `npm run dev` seed).
-
   describe("clientsByMonth", () => {
     it("returns exactly 12 rows ordered ascending when data exists", async () => {
       const series = await temporal.clientsByMonth({ assignedSeller: "Ana" });
@@ -304,7 +268,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
 
     it("fills gap months with { closed: 0, open: 0 }", async () => {
       const series = await temporal.clientsByMonth({ assignedSeller: "Ana" });
-      // Ana has no rows in 2025-06..2025-12 and in 2026-02: all must be 0/0.
       const empty = series.filter(
         (p) =>
           p.yearMonth !== "2025-05" &&
@@ -321,25 +284,21 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     it("counts closed and open separately per month for a single seller", async () => {
       const series = await temporal.clientsByMonth({ assignedSeller: "Ana" });
       const byMonth = new Map(series.map((p) => [p.yearMonth, p]));
-      // Ana in April: 2 closed, 1 open.
       expect(byMonth.get("2026-04")).toEqual({
         yearMonth: "2026-04",
         closed: 2,
         open: 1,
       });
-      // Ana in March: 1 closed, 0 open.
       expect(byMonth.get("2026-03")).toEqual({
         yearMonth: "2026-03",
         closed: 1,
         open: 0,
       });
-      // Ana in January 2026: 0 closed, 1 open.
       expect(byMonth.get("2026-01")).toEqual({
         yearMonth: "2026-01",
         closed: 0,
         open: 1,
       });
-      // Ana in May 2025: 1 closed, 0 open.
       expect(byMonth.get("2025-05")).toEqual({
         yearMonth: "2025-05",
         closed: 1,
@@ -362,7 +321,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
       const unfiltered = await temporal.clientsByMonth({
         assignedSeller: "Ana",
       });
-      // Shape must match — filter.closed MUST be stripped locally.
       expect(filteredClosed).toEqual(unfiltered);
     });
 
@@ -377,7 +335,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
         closed: 0,
         open: 1,
       });
-      // Ana+Retail has no other rows in the 12m window → 0/0 elsewhere.
       expect(byMonth.get("2026-03")).toEqual({
         yearMonth: "2026-03",
         closed: 0,
@@ -388,7 +345,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
 
   describe("clientCountMoM", () => {
     it("returns positive delta percent when current > previous", async () => {
-      // Ana: April=3 (2 closed + 1 open), March=1, delta=(3-1)/1*100 = 200.0
       const result = await temporal.clientCountMoM({ assignedSeller: "Ana" });
       expect(result.current).toBe(3);
       expect(result.previous).toBe(1);
@@ -397,8 +353,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("rounds delta percent to one decimal", async () => {
-      // Bruno: April=4, March=1, delta=(4-1)/1*100 = 300.0
-      // We rely on Math.round(x * 10)/10 behaviour — assert the .0 decimal.
       const result = await temporal.clientCountMoM({
         assignedSeller: "Bruno",
       });
@@ -406,8 +360,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("returns null deltaPct when previous is 0 and current > 0 (no base to divide)", async () => {
-      // With assignedSeller=Ana AND industry=Retail, only April has a row (1).
-      // March (Retail+Ana) = 0.
       const result = await temporal.clientCountMoM({
         assignedSeller: "Ana",
         industry: "Retail",
@@ -429,8 +381,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("respects filters.closed (unlike clientsByMonth)", async () => {
-      // Ana + closed=true in April = 2 rows; previous (March closed=true) = 1
-      // → deltaPct = 100.0
       const result = await temporal.clientCountMoM({
         assignedSeller: "Ana",
         closed: true,
@@ -441,7 +391,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("respects filters.industry", async () => {
-      // Ana + industry=Tecnología in April: 2 rows (T1, T2). March Tec: 1 (T8).
       const result = await temporal.clientCountMoM({
         assignedSeller: "Ana",
         industry: "Tecnología",
@@ -452,12 +401,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("returns 0 deltaPct when current and previous are both 0 but data exists earlier", async () => {
-      // Bruno + industry=Retail: March has 1 open row, but April has 0 AND May 2025 etc. = 0.
-      // MAX(meetingDate) for Bruno+Retail = 2026-03. current (March) = 1,
-      // previous (Feb) = 0 → deltaPct = null, referenceYearMonth = "2026-03".
-      // We already test previous=0 above; this case verifies that MAX anchors to
-      // the most recent data for the filter — no "month-zero deltaPct=0" path
-      // in the fixture. Keeping the invariant explicit:
       const result = await temporal.clientCountMoM({
         assignedSeller: "Bruno",
         industry: "Retail",
@@ -471,20 +414,12 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
 
   describe("topSellerByMonth", () => {
     it("returns the seller with most closed rows in the anchor month", async () => {
-      // April 2026 (anchor): Ana=2 closed / 3 total (66.7%), Bruno=1/4 (25%).
-      // Ana wins on closedInMonth.
       const top = await temporal.topSellerByMonth();
-      // The global seeded data may shift the anchor, so filter down to the
-      // fixture sellers to keep the assertion deterministic.
-      const scoped = await temporal.topSellerByMonth({
-        // intentionally no closed filter — method ignores it anyway
-      });
+      const scoped = await temporal.topSellerByMonth({});
       expect(scoped).not.toBeNull();
-      // Using scoped+filter to force the fixture-only window:
       const fixtureScoped = await temporal.topSellerByMonth({
         industry: "Tecnología",
       });
-      // Ana with 2 closed > Bruno with 1 closed in April under Tecnología.
       expect(fixtureScoped?.name).toBe("Ana");
       expect(fixtureScoped?.closedInMonth).toBe(2);
       expect(fixtureScoped?.totalInMonth).toBe(2);
@@ -494,9 +429,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("breaks ties on closedInMonth by closeRateInMonth (desc)", async () => {
-      // Narrow filter: within industry=Tecnología AND company=SMB in April,
-      // Ana has 2 closed of 2 (100%), Bruno has 1 closed of 4 (25%).
-      // Even if they had the same closedInMonth, Ana would win on closeRate.
       const top = await temporal.topSellerByMonth({
         industry: "Tecnología",
         companySize: "SMB",
@@ -505,7 +437,6 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("returns null when the anchor month has no closed rows (HAVING filter)", async () => {
-      // Ana + industry=Retail: anchor=2026-04, 0 closed, 1 open → null.
       const top = await temporal.topSellerByMonth({
         assignedSeller: "Ana",
         industry: "Retail",
@@ -526,13 +457,8 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
     });
 
     it("ignores filters.closed (passing closed:false does not erase the ranking)", async () => {
-      const withFalse = await temporal.topSellerByMonth({
-        industry: "Tecnología",
-        closed: false,
-      });
-      const withoutFilter = await temporal.topSellerByMonth({
-        industry: "Tecnología",
-      });
+      const withFalse = await temporal.topSellerByMonth({ industry: "Tecnología", closed: false });
+      const withoutFilter = await temporal.topSellerByMonth({ industry: "Tecnología" });
       expect(withFalse).toEqual(withoutFilter);
     });
   });

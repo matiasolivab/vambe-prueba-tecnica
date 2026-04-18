@@ -5,9 +5,6 @@ import UploadButton from "@/ingestion/ui/upload-button";
 
 import { DashboardTabs } from "./ui/dashboard-tabs";
 
-// Shared chrome: top nav + tabs. Filters now live inside each page's
-// SectionHeader so the filter trigger sits at the same visual level as
-// the page title — see `ui/section-header.tsx`.
 export const dynamic = "force-dynamic";
 
 export default function DashboardLayout({
@@ -17,8 +14,6 @@ export default function DashboardLayout({
 }) {
   return (
     <main className="relative isolate min-h-screen overflow-hidden bg-background text-foreground">
-      {/* Landing-style decorative blobs, attenuated so dense charts stay
-          legible. `pointer-events-none` keeps them out of hit-testing. */}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 -left-40 -z-10 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-cyan-300/20 to-cyan-500/0 blur-3xl"

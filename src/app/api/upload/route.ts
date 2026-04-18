@@ -7,42 +7,11 @@ import type {
   IngestionReport,
 } from "@/ingestion/application/ingestion-service";
 
-/**
- * POST /api/upload — CSV ingestion endpoint backed by Server-Sent Events
- * (PRD §RF1.5). The client uploads the file as `multipart/form-data` under
- * the `csv` field; the server streams progress back as SSE events so the
- * UI can render "N de T — last: email@x.com" in real time.
- *
- * SSE contract (per line terminated by `\n\n`):
- *   event: progress — data: IngestionProgress JSON
- *   event: done     — data: IngestionReport  JSON (terminal)
- *   event: error    — data: { code, message, missingColumns?, unexpectedColumns? } (terminal)
- *
- * Header-level errors (`InvalidCsvFormatError`) emit a structured SSE error
- * with the exact missing/unexpected columns so the UI can surface a precise
- * message (§RF1.2). Per-row failures do NOT stop the stream — they are
- * counted in the progress snapshots and summarised in the final report
- * (§RF1.4 + §RF2.5).
- *
- * Anti-buffering headers (`Cache-Control: no-cache, no-transform`,
- * `X-Accel-Buffering: no`) guarantee that intermediate proxies (Vercel
- * edge, nginx) flush each event immediately instead of batching them.
- *
- * Clean-code note: the handler is still thin — it parses the request,
- * delegates to {@link buildIngestionService} (shared with `scripts/seed.ts`),
- * and wraps the service callback in an SSE-serialiser. All classification
- * and persistence logic lives in the ingestion domain.
- */
-
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-// ~40-60 rows × ~7s each → 5 minutes covers the seeded dataset. Larger
-// uploads would require batching (out of scope).
 export const maxDuration = 300;
 
 const encoder = new TextEncoder();
-// Gate to avoid burning OpenAI credits on unauthorised uploads during the
-// technical-test demo. Override via `UPLOAD_PASSWORD` env var in production.
 const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD ?? "pruebavambe123";
 
 function sseEvent(event: string, data: unknown): Uint8Array {
@@ -84,7 +53,6 @@ export async function POST(request: NextRequest): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const { service, dispose } = buildIngestionService({
-        // Silence logger sink: we stream our own progress via SSE.
         loggerSink: () => {},
       });
       try {
@@ -108,8 +76,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
-      // Disable buffering on nginx/Vercel intermediate proxies so each
-      // event flushes immediately.
       "X-Accel-Buffering": "no",
     },
   });

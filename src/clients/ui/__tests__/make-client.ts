@@ -1,13 +1,5 @@
 import type { Client } from "@/clients/infrastructure/db/schema";
 
-/**
- * Test fixture factory — produces a `Client` with sane defaults that pass
- * the non-null schema constraints. Override any field per test.
- *
- * All required columns (schema §clients.notNull) are populated; nullable
- * classification fields default to populated strings too, so tests opt INTO
- * nullability rather than fighting it.
- */
 export function makeClient(overrides: Partial<Client> = {}): Client {
   return {
     id: "00000000-0000-0000-0000-000000000001",

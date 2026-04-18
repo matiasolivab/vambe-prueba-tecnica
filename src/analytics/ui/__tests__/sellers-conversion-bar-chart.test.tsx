@@ -4,8 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { SellerConversion } from "@/analytics/application/metrics-calculator";
 import { SellersConversionBarChart } from "@/analytics/ui/sellers-conversion-bar-chart";
 
-// Three sellers with distinct totals + close-rates to cover ordering,
-// proportional widths, and stacked amber/cyan split assertions.
 const sampleData: readonly SellerConversion[] = [
   {
     seller: "Juan Pérez",
@@ -52,9 +50,7 @@ describe("SellersConversionBarChart", () => {
     expect(within(rows[0]!).getByText("30")).toBeInTheDocument();
     expect(within(rows[1]!).getByText("15")).toBeInTheDocument();
     expect(within(rows[2]!).getByText("18")).toBeInTheDocument();
-    // No "reuniones" in the visible row content — only in the `title` tooltip.
     rows.forEach((row) => {
-      // Visible text (excluding title attribute) must not contain the word.
       expect(row.textContent ?? "").not.toMatch(/reuniones/i);
     });
   });
@@ -89,7 +85,6 @@ describe("SellersConversionBarChart", () => {
   it("splits amber/cyan inside the outer bar by closeRate", () => {
     render(<SellersConversionBarChart data={sampleData} />);
     const rows = getRows();
-    // Juan: closeRate 0.3 → amber 30%, cyan fills the rest via flex-1.
     const juanAmber = rows[0]!.querySelector<HTMLElement>(
       '[data-testid="seller-bar-closed"]',
     )!;
@@ -126,7 +121,6 @@ describe("SellersConversionBarChart", () => {
       '[data-testid="seller-bar-open"]',
     )!;
     expect(mariaAmber.style.width).toBe("100%");
-    // Cyan segment still present (flex-1 collapses naturally to 0 width).
     expect(mariaCyan).toBeInTheDocument();
   });
 
@@ -135,7 +129,6 @@ describe("SellersConversionBarChart", () => {
     const empty = screen.getByText(/sin vendedores con reuniones/i);
     expect(empty).toBeInTheDocument();
     expect(empty.className).toContain("text-zinc-500");
-    // No rows and no SVG.
     expect(getRows()).toHaveLength(0);
     expect(document.querySelector("svg")).toBeNull();
   });

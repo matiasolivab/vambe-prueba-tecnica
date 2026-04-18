@@ -25,15 +25,6 @@ import { InvalidCsvFormatError } from "@/ingestion/domain/errors";
 import { JsonLogger } from "@/shared/infrastructure/logger";
 import { FixedClock } from "@/shared/infrastructure/clock";
 
-/**
- * Tests for IngestionService — task 5.3.
- *
- * Every collaborator is faked: FakeCsvParser, FakeClassifier, FakeRepository.
- * No network, no DB. Asserts the contract from `docs/PRD.md` §RF1.4 (per-row
- * isolation: a bad row NEVER crashes the batch), §RF1.5 (progress), §RF2.5
- * (failed rows persist), §RF2.8 (prompt_version + model_version stamped).
- */
-
 const MODEL_VERSION = "gpt-4o-mini-2024-07-18";
 
 function validClassification(
@@ -303,7 +294,6 @@ describe("IngestionService", () => {
       .mockRejectedValueOnce(bug);
 
     await expect(service.ingest("csv")).rejects.toBe(bug);
-    // row 1 persisted (success), row 2 crashed the batch, row 3 never touched
     expect(repo.upsertByEmail).toHaveBeenCalledTimes(1);
   });
 

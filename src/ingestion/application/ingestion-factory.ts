@@ -21,23 +21,6 @@ import { JsonLogger, type Logger } from "@/shared/infrastructure/logger";
 
 import { IngestionService } from "./ingestion-service";
 
-/**
- * Single source of truth for assembling the 13-layer classification +
- * ingestion pipeline (ARCHITECTURE §13). Used by BOTH `scripts/seed.ts` and
- * the POST /api/upload route so they can NEVER drift.
- *
- * Returns the service plus a `dispose` callback that releases the underlying
- * `tiktoken` WASM buffer. Callers MUST call `dispose()` when they are done
- * (otherwise the WASM memory leaks for the lifetime of the Node process —
- * an accumulating leak in the route handler).
- *
- * Env contract:
- *   - `OPENAI_API_KEY` — required (createOpenAIClient throws otherwise).
- *   - `DATABASE_URL` — required (createDrizzleClientRepository throws).
- *
- * The logger sink defaults to stdout line-by-line JSON; pass `{ loggerSink }`
- * to redirect (e.g. to a silent sink when tests only care about behaviour).
- */
 export interface BuildIngestionOptions {
   readonly loggerSink?: (line: string) => void;
   readonly fewShotsPath?: string;

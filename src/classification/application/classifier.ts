@@ -10,26 +10,6 @@ import type { LLMClient, LLMResult } from "./llm-client";
 import type { TokenBudgetService } from "./token-budget";
 import type { ClassificationValidator, Warning } from "./validator";
 
-/**
- * The orchestrating use-case. Assembles every Phase 3 defense layer into a
- * single high-level call: token budget → prompt build → LLM call → validate.
- *
- * Responsibility boundary (see `docs/ARCHITECTURE.md` §13):
- *  - Owns pipeline sequencing and result consolidation.
- *  - Stamps `promptVersion` from `CLASSIFIER_VERSION` (rule 13 — traceability).
- *  - Rewraps `ClassificationFailedError('', …)` emitted by the LLM adapter
- *    with the correct task email so the caller (IngestionService, task 5.3)
- *    can mark the failed row.
- *  - Never logs raw email (RNF4.2) — only a short sha256 prefix.
- *  - Does NOT decide persistence; throws typed errors, lets the caller persist
- *    `classification_status: 'failed'` (layer 8 — per-row isolation).
- *
- * The prompt builder is imported from `infrastructure/` because it formats
- * text for an external boundary (the LLM). No I/O happens in `PromptBuilder`;
- * it's a pure formatter. Inward dependency direction is preserved in spirit:
- * `application/` still has zero knowledge of OpenAI's SDK.
- */
-
 export interface ClassificationTask {
   readonly email: string;
   readonly transcript: string;

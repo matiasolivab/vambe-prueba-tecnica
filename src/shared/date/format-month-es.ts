@@ -1,13 +1,3 @@
-/**
- * Formats a `"YYYY-MM"` string as abbreviated Spanish month + apostrophed
- * two-digit year (e.g. `"2026-04"` → `"Abr '26"`).
- *
- * Contract: garbage-in, garbage-visible — invalid inputs return a passthrough
- * string so server-rendered UI stays non-crashing even if the DB yields an
- * unexpected shape. Empty string is treated as a sentinel for "no data" and
- * renders as an em-dash.
- */
-
 const MONTHS_ES_ABBR = [
   "Ene",
   "Feb",
@@ -35,12 +25,6 @@ export function formatYearMonthEs(yyyyMM: string): string {
   return `${MONTHS_ES_ABBR[monthIdx]} '${year.slice(2)}`;
 }
 
-/**
- * Returns the calendar month immediately preceding `yyyyMM`, preserving the
- * `"YYYY-MM"` shape. `"2026-01"` rolls over to `"2025-12"`. Invalid input
- * returns `""` so consumers can chain with `formatYearMonthEs` for a safe
- * "—" fallback.
- */
 export function previousYearMonth(yyyyMM: string): string {
   if (yyyyMM === "") return "";
   const match = YEAR_MONTH_RE.exec(yyyyMM);

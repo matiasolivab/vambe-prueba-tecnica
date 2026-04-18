@@ -23,27 +23,6 @@ import {
 import { TiktokenTokenizer } from "@/classification/infrastructure/tiktoken-tokenizer";
 import type { Logger } from "@/shared/infrastructure/logger";
 
-/**
- * Defense layer 9 — Ground-Truth Accuracy Harness (ARCHITECTURE §13 rule 9).
- *
- * Integration test that exercises the REAL classification pipeline (real
- * OpenAI call per sample) against `tests/fixtures/ground-truth.json` and
- * asserts PRD §RNF2.1: ≥80% accuracy per categorical dimension.
- *
- * GATED by `RUN_GT=1`. The file is picked up by the default vitest glob
- * (`tests/integration/**\/*.test.ts`) but the outer `describe.skipIf` turns
- * every test into a no-op unless the env flag is set — so `pnpm test` stays
- * free, fast, and hermetic. `pnpm test:gt` flips the gate on.
- *
- * Why per-dimension assertions (not a single pass/fail)? The prompt can be
- * strong on some dimensions and weak on others (see task 4.3). Per-dim
- * granularity makes the fix surface obvious in the Vitest output instead of
- * hiding behind a generic "accuracy < 80%".
- */
-
-// vitest runs this file in isolation — env from the parent process is not
-// automatically forwarded. Load `.env.local` explicitly so OPENAI_API_KEY is
-// available here and in the integration test worker.
 loadDotenv({ path: resolve(process.cwd(), ".env.local"), override: false });
 
 const RUN_GT = process.env.RUN_GT === "1";

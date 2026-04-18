@@ -7,12 +7,6 @@ loadEnv({ path: ".env.local", override: true });
 
 import { GET } from "@/app/api/metrics/route";
 
-/**
- * Integration tests for GET /api/metrics. These tests read whatever is in
- * the seeded DB (57 classified rows from task 5.4) — they assert shape and
- * invariants, not specific values, so re-runs never flake.
- */
-
 const hasDbUrl = Boolean(process.env.DATABASE_URL);
 
 describe.skipIf(!hasDbUrl)("GET /api/metrics (integration)", () => {
@@ -46,7 +40,6 @@ describe.skipIf(!hasDbUrl)("GET /api/metrics (integration)", () => {
 
     expect(body).toHaveProperty("topSellerByMonth");
 
-    // Legacy shape must be gone entirely.
     expect(body).not.toHaveProperty("closeRateBy");
     expect(body).not.toHaveProperty("objections");
     expect(body.kpis).not.toHaveProperty("closeRate");
@@ -54,9 +47,6 @@ describe.skipIf(!hasDbUrl)("GET /api/metrics (integration)", () => {
   });
 
   it("accepts a filter query and narrows the KPI total", async () => {
-    // Sanity check: a filter query returns a kpis.totalClients <= the
-    // unfiltered total. We don't know the absolute numbers without inspecting
-    // the seed — this invariant is stable regardless.
     const baseline = await GET(new NextRequest("http://localhost/api/metrics"));
     const filtered = await GET(
       new NextRequest("http://localhost/api/metrics?closed=true"),

@@ -8,41 +8,11 @@ import {
   type Classification,
 } from "@/classification/domain/schema";
 
-/**
- * A single few-shot example: a raw transcript and the canonical
- * classification the LLM is expected to emit for it.
- *
- * The examples are NOT sourced from the CSV inside this module — the caller
- * (classifier wiring) decides which curated examples to inject, keeping
- * `PromptBuilder` decoupled from ground-truth storage.
- */
 export interface FewShotExample {
   readonly transcript: string;
   readonly classification: Classification;
 }
 
-/**
- * Builds the OpenAI `system` and `user` prompts for classification.
- *
- * Design (see `docs/ARCHITECTURE.md` §13 rules 4, 5, 10):
- *
- *  - **Rule 4 (few-shots):** the builder accepts 2–3 curated examples and
- *    renders them as `Transcripción / Clasificación esperada` pairs so the
- *    model sees realistic Spanish transcripts before classifying.
- *  - **Rule 5 (literal "no inventes"):** the anti-hallucination section is
- *    hard-coded with the exact escape-hatch wording for `Otros`, `Ninguna`
- *    — prudence becomes an obligation, not an option.
- *  - **Rule 10 (CoT):** the system prompt explicitly instructs the model to
- *    emit `reasoning` FIRST before any categorical value.
- *
- * Enum values are imported live from `domain/schema.ts`, so adding an
- * industry there automatically propagates to the prompt without a manual
- * edit (enforced by a test).
- *
- * Lives in `infrastructure/` because prompt text formats output for an
- * external boundary (the LLM). Domain direction points inward: this module
- * imports from `domain/`, never the reverse.
- */
 export class PromptBuilder {
   public constructor(
     private readonly fewShots: readonly FewShotExample[] = [],
@@ -118,14 +88,6 @@ export class PromptBuilder {
     ].join("\n");
   }
 
-  /**
-   * Per-dimension discrimination rules. Drafted after measuring the baseline
-   * prompt against the ground-truth fixture (task 4.2) — the rules below
-   * target the specific error patterns diagnosed there (Mid-market
-   * under-classification, symptom-vs-cause confusion on mainPainPoint, and
-   * positivity bias on sentiment). See `docs/ARCHITECTURE.md` §13 rule 13:
-   * bump `CLASSIFIER_VERSION` whenever this section changes.
-   */
   private formatPerDimensionRules(): string {
     return [
       "Reglas por dimensión (usá estos criterios discriminadores):",

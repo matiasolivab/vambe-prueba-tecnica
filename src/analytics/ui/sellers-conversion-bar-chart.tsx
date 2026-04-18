@@ -1,17 +1,5 @@
 import type { SellerConversion } from "@/analytics/application/metrics-calculator";
 
-/**
- * Conversion-by-seller grid — one row per seller, three columns:
- * name | totalClients | stacked progress bar (amber closed / cyan open).
- *
- * Pure HTML + Tailwind, no Recharts. The outer bar width is proportional
- * to the biggest `totalClients` in `data`; the inner amber segment width
- * is `closeRate * 100%`, and the cyan segment (`flex-1`) fills the rest.
- *
- * Colour semantics match `clients-by-month-chart.tsx`:
- *   amber-400 → closed (wins), cyan-400 → open (pipeline).
- */
-
 export interface SellersConversionBarChartProps {
   readonly data: readonly SellerConversion[];
 }
@@ -27,9 +15,6 @@ export function SellersConversionBarChart({
     );
   }
 
-  // Fallback to 1 to avoid division-by-zero if every row is 0 (shouldn't
-  // happen for this chart but keeps the math total since early-return
-  // above only guards length).
   const maxTotalClients = Math.max(...data.map((d) => d.totalClients), 1);
 
   return (

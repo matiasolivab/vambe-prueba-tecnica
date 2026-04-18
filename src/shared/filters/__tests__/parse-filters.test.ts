@@ -5,12 +5,6 @@ import {
   parseFiltersFromSearchParams,
 } from "@/shared/filters/parse-filters";
 
-/**
- * parse-filters — single source of truth for URL → ClientFilters mapping
- * (PRD §RF3.2 + §RF3.4). The API routes and the dashboard page both
- * consume this helper, so the key names (`vendor`, `industry`, `size`,
- * `closed`, `sentiment`, `search`) are externally visible URL contract.
- */
 describe("parseFiltersFromSearchParams", () => {
   it("returns an empty object when no query params are present", () => {
     expect(parseFiltersFromSearchParams(new URLSearchParams())).toEqual({});

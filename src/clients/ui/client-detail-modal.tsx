@@ -17,18 +17,6 @@ export interface ClientDetailModalProps {
   readonly onClose: () => void;
 }
 
-/**
- * Drill-down modal for a single classified client (PRD §8.5). Controlled by
- * the parent table via `client`/`onClose` — when `client === null` the modal
- * stays closed and Dialog unmounts its portal (no dialog role in DOM).
- *
- * Renders the three qualitative artifacts the PRD requires visible:
- *   1. needsSummary
- *   2. nextSteps
- *   3. original transcript (scrollable region)
- * Plus classification metadata (promptVersion, truncated, warnings count) so
- * a reviewer can audit the row at a glance.
- */
 export function ClientDetailModal({ client, onClose }: ClientDetailModalProps) {
   const open = client !== null;
 

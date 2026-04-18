@@ -13,17 +13,7 @@ import { cn } from "@/lib/utils";
 import { FiltersPanel } from "./filters-panel";
 import { countActiveFilters } from "./shared";
 
-/**
- * Compact filter trigger (PRD §RF3.2 / §RF3.4). Renders a single pill:
- *
- *   [ ⚙ Filtros · N ]
- *
- * The count badge communicates how many filters are active; clicking
- * opens a popover with the full form (`FiltersPanel`). URL-driven, so
- * Server Component sections re-render on every change.
- */
 export interface FiltersBarProps {
-  /** Distinct sellers sourced from `ClientRepository.distinctSellers()`. */
   readonly sellers: readonly string[];
 }
 

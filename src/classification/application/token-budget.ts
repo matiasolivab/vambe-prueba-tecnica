@@ -1,21 +1,11 @@
 import type { Logger } from "@/shared/infrastructure/logger";
 import { TokenLimitExceededError } from "@/classification/domain/errors";
 
-/**
- * Port: minimum surface the budget service needs from any tokenizer.
- * The real adapter lives in `classification/infrastructure/tiktoken-tokenizer.ts`.
- * Tests inject a deterministic fake — see `__tests__/token-budget.test.ts`.
- */
 export interface Tokenizer {
   encode(text: string): Uint32Array;
   decode(tokens: Uint32Array): string;
 }
 
-/**
- * Result of fitting a transcript into the LLM budget.
- * Propagated to the classifier → written to DB column `truncated`
- * (ARCHITECTURE §13 rule 11 — audit trail for truncation).
- */
 export interface TokenFit {
   readonly text: string;
   readonly originalTokens: number;
@@ -28,15 +18,6 @@ const DEFAULT_MARKER = "\n\n[...TRUNCATED...]\n\n";
 const HEAD_RATIO = 0.7;
 const TAIL_RATIO = 0.3;
 
-/**
- * Defense layer 11 (see ARCHITECTURE §13 rule 11).
- *
- * Counts tokens; if above budget, truncates to `first 70% + marker + last 30%`
- * of the usable space. Logs a warn with audit metadata so the classifier can
- * persist `truncated: true` on the row. Throws `TokenLimitExceededError` only
- * as a last-resort defensive check when the post-truncation output somehow
- * still exceeds the budget (should never happen in practice).
- */
 export class TokenBudgetService {
   public constructor(
     private readonly tokenizer: Tokenizer,

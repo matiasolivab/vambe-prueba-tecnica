@@ -1,29 +1,9 @@
 import { FiltersBar } from "@/app/ui/filters/filters-bar";
 
-/**
- * Page-level header used by every dashboard section. Two columns:
- *
- *   [badge]                                                    [Filtros ⋯]
- *   Title
- *   Description
- *
- * The filters live in the header — same visual row as the title — so the
- * user immediately connects "this is what I'm filtering" with "here's the
- * data below". Stacks vertically on mobile (title above, filters below).
- */
 export interface SectionHeaderProps {
   readonly title: string;
   readonly description: string;
-  /**
-   * Small rounded-full label above the title (e.g. "Resumen", "Performance").
-   * Mirrors the landing pill. Optional.
-   */
   readonly badge?: string;
-  /**
-   * Distinct sellers for the FiltersBar popover. Each page fetches this
-   * alongside its own data so the header stays a pure composition of
-   * server-passed props.
-   */
   readonly sellers: readonly string[];
 }
 

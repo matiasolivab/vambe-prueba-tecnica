@@ -7,25 +7,6 @@ import {
   parseFiltersFromSearchParams,
 } from "@/shared/filters/parse-filters";
 
-/**
- * GET /api/metrics — dashboard aggregates for the Overview, Sellers, and
- * Clients sections. Fired on page load and again whenever the global filter
- * strip changes (§RF3.2). Every aggregation runs in Postgres so this handler
- * stays thin: parse filters → `Promise.all` fan-out → one JSON blob.
- *
- * Payload shape:
- *  - `kpis`              → total clients + top pain point
- *  - `sellers`           → ranking by close rate (seller bar chart)
- *  - `sellerByIndustry`  → crosstab for the sellers × industries heatmap
- *  - `clientsByMonth`    → 12-month closed/open trend (line chart)
- *  - `clientCountMoM`    → MoM delta for the Total clients tile
- *  - `topSellerByMonth`  → best seller of the anchor month
- *
- * `search` is intentionally NOT part of `MetricFilters` (only table filtering
- * uses free text; metrics are categorical), so we strip it via
- * {@link metricFiltersOf} after parsing.
- */
-
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 

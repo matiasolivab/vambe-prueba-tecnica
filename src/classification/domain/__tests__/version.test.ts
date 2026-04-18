@@ -13,9 +13,6 @@ describe("CLASSIFIER_VERSION", () => {
   });
 
   it("is on the 3.x major line (schema shape changed — buyingSignal replaced by leadSource)", () => {
-    // Major bump 2.x → 3.0.0 because the output schema swaps buyingSignal for
-    // leadSource. Persisted rows from 2.x are distinguishable in the DB by this
-    // version string.
     expect(CLASSIFIER_VERSION).toMatch(/^3\.\d+\.\d+$/);
   });
 });

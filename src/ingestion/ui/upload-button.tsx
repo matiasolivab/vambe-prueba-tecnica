@@ -26,17 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-/**
- * UploadButton (PRD §8.6) — top-right dashboard action that opens a modal
- * password gate first, then a dropzone, POSTs the CSV to `/api/upload`,
- * consumes the SSE stream, and refreshes the dashboard when ingestion
- * finishes.
- *
- * State machine: gate → idle → uploading → done | error. The gate is a
- * simple client-side check to avoid accidental uploads; the server also
- * validates the password on /api/upload so it's authoritative.
- */
-
 const EXPECTED_PASSWORD = "pruebavambe123";
 
 type UiState =

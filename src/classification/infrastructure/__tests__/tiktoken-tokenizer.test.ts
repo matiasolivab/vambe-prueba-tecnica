@@ -1,11 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TiktokenTokenizer } from "../tiktoken-tokenizer";
 
-/**
- * Integration test for the real tiktoken adapter. Kept small on purpose:
- * we exercise encode, round-trip decode, and dispose. Everything else is
- * covered at the service level via a deterministic fake tokenizer.
- */
 describe("TiktokenTokenizer", () => {
   it("encodes a non-empty string into a non-empty Uint32Array", () => {
     const tokenizer = new TiktokenTokenizer();

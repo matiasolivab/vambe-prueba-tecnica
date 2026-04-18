@@ -13,13 +13,6 @@ import {
   type Classification,
 } from "@/classification/domain/schema";
 
-/**
- * Fixture: 2 few-shot examples covering distinct enum values.
- *
- * The builder must serialize these as `Transcripción: ...` / `Clasificación
- * esperada: <JSON>` pairs. We keep the examples decoupled from the real CSV
- * — this service only cares about formatting, not data sourcing.
- */
 const fewShot1: FewShotExample = {
   transcript:
     "Vendedor: Hola, soy de Vambe. Cliente: Necesitamos integrar su sistema con nuestra API.",
@@ -75,7 +68,6 @@ describe("PromptBuilder", () => {
       const prompt = builder.buildSystemPrompt();
 
       expect(prompt).toContain("reasoning");
-      // Ordering cue: must literally tell the model reasoning comes first.
       const mentionsOrder =
         prompt.includes("PRIMERO") ||
         prompt.toLowerCase().includes("antes de") ||
@@ -104,7 +96,6 @@ describe("PromptBuilder", () => {
         );
       }
 
-      // Removed dimensions must not appear
       expect(prompt).not.toContain("purchaseTimeline");
       expect(prompt).not.toContain("decisionMakerRole");
       expect(prompt).not.toContain("buyingSignal");
@@ -142,7 +133,6 @@ describe("PromptBuilder", () => {
       expect(prompt).toContain("Otros");
       expect(prompt).toContain("Ninguna");
       expect(prompt).toContain("NO INVENTES");
-      // purchaseTimeline Indefinido rule must be gone
       expect(prompt).not.toContain("Indefinido");
     });
 
@@ -192,7 +182,6 @@ describe("PromptBuilder", () => {
       expect(prompt).toContain("Transcripción:");
       expect(prompt).toContain(fewShot1.transcript);
       expect(prompt).toContain(fewShot2.transcript);
-      // JSON serialization preserves the exact enum value.
       expect(prompt).toContain('"Tecnología"');
       expect(prompt).toContain('"E-commerce"');
     });

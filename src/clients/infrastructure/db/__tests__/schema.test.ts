@@ -12,7 +12,6 @@ describe("clients Drizzle schema", () => {
   it("exposes every PRD §7 column plus traceability + timestamps", () => {
     const cols = getTableColumns(clients);
     const expected = [
-      // identity / CSV
       "id",
       "name",
       "email",
@@ -21,17 +20,14 @@ describe("clients Drizzle schema", () => {
       "assignedSeller",
       "closed",
       "transcript",
-      // LLM categorical dimensions (§7.1)
       "industry",
       "companySize",
       "mainPainPoint",
       "keyObjection",
       "leadSource",
       "sentiment",
-      // LLM qualitative (§7.2)
       "needsSummary",
       "nextSteps",
-      // LLM traceability (§7.3)
       "reasoning",
       "promptVersion",
       "modelVersion",
@@ -39,7 +35,6 @@ describe("clients Drizzle schema", () => {
       "classificationStatus",
       "errorMessage",
       "warnings",
-      // timestamps
       "createdAt",
       "updatedAt",
     ] as const;
@@ -47,7 +42,6 @@ describe("clients Drizzle schema", () => {
     for (const name of expected) {
       expect(cols, `missing column: ${name}`).toHaveProperty(name);
     }
-    // 8 identity/CSV + 6 categorical + 2 qualitative + 7 traceability + 2 timestamps = 25
     expect(Object.keys(cols)).toHaveLength(expected.length);
   });
 
@@ -133,8 +127,6 @@ describe("clients Drizzle schema", () => {
   });
 
   it("infers an Insert type that keeps defaults optional", () => {
-    // id / truncated / classificationStatus / warnings / timestamps all have defaults
-    // so they must be optional in NewClient.
     const draft: NewClient = {
       name: "Ada Lovelace",
       email: "ada@example.com",

@@ -5,15 +5,6 @@ import {
   previousYearMonth,
 } from "@/shared/date/format-month-es";
 
-/**
- * `formatYearMonthEs` and `previousYearMonth` are pure string utilities driving
- * the dashboard Overview (KPI delta caption + 12-month trend chart X axis).
- *
- * Both follow a "garbage-in, garbage-visible" contract: invalid inputs return
- * a passthrough string — never throws, never undefined — so server-rendered UI
- * stays non-crashing even if the DB yields an unexpected shape.
- */
-
 describe("formatYearMonthEs", () => {
   it("formats a valid YYYY-MM as abbreviated Spanish month + apostrophed year", () => {
     expect(formatYearMonthEs("2026-04")).toBe("Abr '26");

@@ -5,13 +5,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-/**
- * Pill-style tab strip for the /dashboard/* segment. Each tab is a <Link>
- * whose `href` carries the CURRENT query string — so switching sections
- * keeps the global filters intact (RF3.2). Active state is resolved from
- * `usePathname` and rendered as a solid pill that mirrors the landing CTA.
- */
-
 export interface DashboardTab {
   readonly href: string;
   readonly label: string;

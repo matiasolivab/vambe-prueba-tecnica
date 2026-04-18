@@ -8,14 +8,6 @@ import type {
 } from "../application/client-repository";
 import { clients, type Client, type NewClient } from "./db/schema";
 
-/**
- * Drizzle + `@neondatabase/serverless` adapter for `ClientRepository`.
- *
- * The class stays DI-pure (constructor takes a `NeonHttpDatabase`) so it can
- * be swapped with a test double if needed. Production wiring goes through
- * the `createDrizzleClientRepository` factory below, which reads
- * `DATABASE_URL` once.
- */
 export class DrizzleClientRepository implements ClientRepository {
   public constructor(private readonly db: NeonHttpDatabase) {}
 
@@ -47,15 +39,12 @@ export class DrizzleClientRepository implements ClientRepository {
           classificationStatus: input.classificationStatus,
           errorMessage: input.errorMessage,
           warnings: input.warnings,
-          // `now()` on the DB side avoids clock skew vs. app server.
           updatedAt: sql`now()`,
         },
       })
       .returning();
 
     if (!row) {
-      // RETURNING on a successful insert/update always yields one row.
-      // Reaching here means the driver lied; fail loudly.
       throw new Error(
         `upsertByEmail returned no row for email=${input.email}`,
       );
@@ -91,9 +80,6 @@ export class DrizzleClientRepository implements ClientRepository {
   }
 
   public async distinctSellers(): Promise<readonly string[]> {
-    // `assignedSeller` is NOT NULL in the schema (every CSV row carries
-    // one) so we don't need to filter nulls here — let the DB do the
-    // dedup + sort in one pass.
     const rows = await this.db
       .selectDistinct({ name: clients.assignedSeller })
       .from(clients)
@@ -120,13 +106,9 @@ export class DrizzleClientRepository implements ClientRepository {
       conds.push(eq(clients.sentiment, filters.sentiment));
     }
     if (filters.search !== undefined && filters.search.length > 0) {
-      // RF3.4 — name OR email, case-insensitive substring. `ilike` is
-      // Postgres-native; `%` is literal inside the pattern.
       const pattern = `%${filters.search}%`;
       const nameMatch = ilike(clients.name, pattern);
       const emailMatch = ilike(clients.email, pattern);
-      // `or(a, b)` returns SQL | undefined when any arg is undefined;
-      // both branches are concrete so the cast is safe.
       conds.push(or(nameMatch, emailMatch) as SQL);
     }
     if (conds.length === 0) return undefined;
@@ -135,14 +117,6 @@ export class DrizzleClientRepository implements ClientRepository {
   }
 }
 
-/**
- * Production factory: reads `DATABASE_URL` from the environment and wires a
- * Neon HTTP driver. Throws a clear error when the env is missing so we never
- * boot against an accidental local default.
- *
- * Callers that want to inject a mocked `db` should construct
- * `DrizzleClientRepository` directly and skip this helper.
- */
 export function createDrizzleClientRepository(): DrizzleClientRepository {
   const url = process.env.DATABASE_URL;
   if (!url) {

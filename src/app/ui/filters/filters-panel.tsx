@@ -20,13 +20,6 @@ import {
 
 import { ALL, useSearchParamsPusher } from "./shared";
 
-/**
- * The full filter form, rendered inside the popover (PRD §RF3.2 / §RF3.4).
- * Reads current filters from the URL, pushes URL updates on every change
- * so every Server Component section re-renders against the new query
- * string. Only local state is the debounced search buffer.
- */
-
 export interface FiltersPanelProps {
   readonly sellers: readonly string[];
 }
@@ -49,7 +42,6 @@ export function FiltersPanel({ sellers }: FiltersPanelProps) {
     setSearchDraft(currentSearch);
   }, [currentSearch]);
 
-  // Debounced search: 400ms after the last keystroke, push ?search=<text>.
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (searchDraft === currentSearch) return;
@@ -141,8 +133,6 @@ export function FiltersPanel({ sellers }: FiltersPanelProps) {
   );
 }
 
-// --- helpers --------------------------------------------------------------
-
 type FilterOption = string | { value: string; label: string };
 
 interface PanelSelectProps {
@@ -193,12 +183,6 @@ function PanelSelect({
   );
 }
 
-/**
- * Map the raw select value to its human label. Needed because base-ui's
- * SelectValue falls back to the literal value when no `items` prop is
- * supplied to `Select.Root` — that would leak the `__all__` sentinel and
- * the `"true"`/`"false"` strings for the Estado filter.
- */
 function displayLabel(
   value: unknown,
   allLabel: string,

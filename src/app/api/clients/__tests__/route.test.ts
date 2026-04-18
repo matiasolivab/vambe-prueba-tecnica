@@ -10,18 +10,6 @@ import { GET } from "@/app/api/clients/route";
 import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
 import { clients, type NewClient } from "@/clients/infrastructure/db/schema";
 
-/**
- * Integration tests for GET /api/clients.
- *
- * Invokes the Route Handler directly (no dev server) by importing `GET` and
- * constructing a `NextRequest` — documented pattern in Next 16 route
- * docs. Test env is `node` because Next server APIs and `@neondatabase/serverless`
- * both require Node.
- *
- * Fixtures use the `api-clients-test-*@example.com` prefix to avoid colliding
- * with the repo-level `test-*@example.com` cleanup (parallel file safety).
- */
-
 const hasDbUrl = Boolean(process.env.DATABASE_URL);
 
 function baseClient(overrides: Partial<NewClient> = {}): NewClient {
@@ -148,7 +136,6 @@ describe.skipIf(!hasDbUrl)("GET /api/clients (integration)", () => {
       clients: Array<{ email: string; closed: boolean }>;
     };
     const emails = body.clients.map((c) => c.email);
-    // Both rows come through → the filter was ignored.
     expect(emails).toContain("api-clients-test-malformed-1@example.com");
     expect(emails).toContain("api-clients-test-malformed-2@example.com");
   });

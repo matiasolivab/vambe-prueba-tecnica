@@ -20,20 +20,8 @@ import { CLASSIFIER_VERSION } from "@/classification/domain/version";
 import { JsonLogger } from "@/shared/infrastructure/logger";
 import { FixedClock } from "@/shared/infrastructure/clock";
 
-/**
- * Tests for the orchestrating use-case TranscriptClassifier.
- *
- * All collaborators are faked: no real tokenizer, no real OpenAI, no real
- * prompt text, no real validator rules. We assert the PIPELINE ASSEMBLY —
- * that inputs flow through the layers in the right order, that the result
- * consolidates their outputs, and that errors propagate according to the
- * documented policy (rewrap only empty-email `ClassificationFailedError`s;
- * pass every other typed error through unchanged).
- */
-
 const MODEL_VERSION = "gpt-4o-mini-2024-07-18";
 
-/** Fully-valid baseline matching ClassificationSchema. Override what you need. */
 function validClassification(
   overrides: Partial<Classification> = {},
 ): Classification {
@@ -190,7 +178,6 @@ describe("TranscriptClassifier", () => {
       warnings: [],
     });
 
-    // exactly one info log
     expect(captured.lines).toHaveLength(1);
     const entry = JSON.parse(captured.lines[0]!) as Record<string, unknown>;
     expect(entry.level).toBe("info");

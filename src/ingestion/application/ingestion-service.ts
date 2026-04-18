@@ -10,25 +10,6 @@ import type { Logger } from "@/shared/infrastructure/logger";
 
 import type { CsvParser, ParseResult } from "../infrastructure/csv-parser";
 
-/**
- * IngestionService — orchestrates the full upload pipeline: parse → classify →
- * persist, one row at a time, with per-row isolation.
- *
- * Responsibility (see `docs/ARCHITECTURE.md` §7 + §13 layer 8):
- *  - Reused by the SSE upload endpoint and by `scripts/seed.ts`.
- *  - Header-level failures (`InvalidCsvFormatError`) propagate — the entire
- *    batch is invalid and the caller (API route) must surface a 400.
- *  - Per-row failures NEVER crash the batch (PRD §RF1.4): parse errors land
- *    in `parseErrors`, classifier typed errors are caught and persisted with
- *    `classification_status: 'failed'` + `error_message` (PRD §RF2.5) so the
- *    UI can show them and offer retry.
- *  - Non-`DomainError` throws are bugs, not per-row noise — they bubble up.
- *  - Every successful row stamps `promptVersion` + `modelVersion` for
- *    auditability (PRD §RF2.8).
- *  - Progress is emitted after EACH processed row so the UI can render
- *    "N de T — last: email@x.com" (PRD §RF1.5).
- */
-
 export interface IngestionProgress {
   readonly total: number;
   readonly processed: number;

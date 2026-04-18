@@ -3,22 +3,6 @@ import { parse as parseCsv } from "csv-parse/sync";
 import type { NewClient } from "@/clients/infrastructure/db/schema";
 import { InvalidCsvFormatError } from "@/ingestion/domain/errors";
 
-/**
- * CsvParser — strict CSV ingestion for sales-call records.
- *
- * Contract (see `docs/PRD.md` §RF1):
- *  - §RF1.1 Accepts exactly the 7 columns listed in `EXPECTED_HEADERS`.
- *    Match is case- and accent-sensitive. Column order does NOT matter
- *    because `csv-parse` maps by name when `columns: true`.
- *  - §RF1.2 Missing or wrong column → throws `InvalidCsvFormatError`, which
- *    the caller surfaces to the user. No row processing starts.
- *  - §RF1.4 Per-row isolation: a bad row produces `{ ok: false, … }` and
- *    does NOT throw, so the batch continues.
- *
- * The parser is pure (no DB, no network, no I/O). It turns a CSV string
- * into a `ParseResult[]` — mapped rows to `NewClient` or per-row errors.
- */
-
 export const EXPECTED_HEADERS = [
   "Nombre",
   "Correo Electronico",

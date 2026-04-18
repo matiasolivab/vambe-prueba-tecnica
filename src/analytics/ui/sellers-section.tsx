@@ -8,17 +8,6 @@ import { SellersBarChart } from "@/analytics/ui/sellers-bar-chart";
 import { SellersIndustryTable } from "@/analytics/ui/sellers-industry-table";
 import { Card, CardContent } from "@/components/ui/card";
 
-/**
- * §8.2 — Performance de vendedores. Server Component: issues two parallel
- * reads against Neon, then hands plain JSON to the Client chart while the
- * crosstab table renders inline (no `"use client"` needed).
- *
- * Accepts global {@link MetricFilters} (RF3.2) — when present, every
- * aggregation is scoped to the filtered subset. The section title and
- * description live in the owning page's `SectionHeader`; this component
- * composes two internal subsections (ranking + coverage) separated by a
- * divider, with a legend footer explaining the visual encoding.
- */
 export async function SellersSection({
   filters,
 }: {
@@ -54,8 +43,6 @@ export async function SellersSection({
     </Card>
   );
 }
-
-// --- internal composition -------------------------------------------------
 
 function Subsection({
   title,
@@ -134,8 +121,6 @@ function LegendSwatch({
     </span>
   );
 }
-
-// --- captions -------------------------------------------------------------
 
 function rankingCaption(ranking: readonly SellerRanking[]): string {
   const shown = Math.min(10, ranking.length);

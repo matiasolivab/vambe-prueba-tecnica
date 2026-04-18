@@ -9,15 +9,6 @@ import {
   type ParseResult,
 } from "../csv-parser";
 
-/**
- * CsvParser — unit tests (pure, no DB, no network).
- *
- * Requirements covered:
- * - RF1.1: 7 exact column names (case + accent sensitive).
- * - RF1.2: missing or wrong column → clear error, batch aborts (throw).
- * - RF1.4: bad row is reported as { ok: false }, does NOT crash the batch.
- */
-
 const HEADER_ROW = EXPECTED_HEADERS.join(",");
 
 const validRow = (overrides: Record<string, string> = {}): string => {

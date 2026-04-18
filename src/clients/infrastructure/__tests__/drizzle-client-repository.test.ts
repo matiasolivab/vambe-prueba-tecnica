@@ -9,20 +9,6 @@ import type { ClientRepository } from "@/clients/application/client-repository";
 import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
 import { clients, type NewClient } from "@/clients/infrastructure/db/schema";
 
-/**
- * Integration tests for the Drizzle-backed `ClientRepository`.
- *
- * These tests hit a REAL Neon Postgres so we exercise the actual SQL
- * semantics that make upsert interesting (UNIQUE constraint, ON CONFLICT,
- * RETURNING, jsonb round-trip). Mocks would miss those.
- *
- * Cleanup is surgical: every test row uses the `test-*@example.com` prefix
- * and we DELETE by that prefix in `beforeEach`. Seeded/prod rows stay put.
- *
- * Skips gracefully when `DATABASE_URL` is not set (e.g. CI without secrets)
- * via the outer `describe.skipIf`.
- */
-
 const hasDbUrl = Boolean(process.env.DATABASE_URL);
 
 function baseClient(overrides: Partial<NewClient> = {}): NewClient {
@@ -40,10 +26,6 @@ function baseClient(overrides: Partial<NewClient> = {}): NewClient {
 
 describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
   let repo: ClientRepository;
-  // The factory returns a concrete DrizzleClientRepository but we need the
-  // raw `db` for the LIKE cleanup. Expose it via the factory-returned
-  // instance's private field — safer than re-wiring neon() here and avoids
-  // drifting from production config.
   let rawDb: {
     execute: (query: ReturnType<typeof sql>) => Promise<unknown>;
   };
@@ -62,7 +44,6 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
   });
 
   afterAll(async () => {
-    // neon-http is stateless HTTP; no explicit close needed.
     await rawDb.execute(
       sql`DELETE FROM ${clients} WHERE ${clients.email} LIKE 'test-%@example.com'`,
     );
@@ -81,7 +62,6 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
     expect(row.assignedSeller).toBe("Toro");
     expect(row.closed).toBe(false);
     expect(row.transcript).toBe(input.transcript);
-    // Defaults applied by the DB for an insert without classification data.
     expect(row.classificationStatus).toBe("pending");
     expect(row.truncated).toBe(false);
     expect(row.warnings).toEqual([]);
@@ -108,18 +88,14 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
     expect(updated.transcript).toBe("Updated transcript content.");
     expect(updated.industry).toBe("Retail");
 
-    // Only one row with that email should exist.
     const countAfter = await repo.count();
     const again = await repo.findByEmail(email);
     expect(again).not.toBeNull();
-    // count() is a sanity check; surgical assertion below is the real guard.
     expect(countAfter).toBeGreaterThanOrEqual(1);
 
     const duplicates = await rawDb.execute(
       sql`SELECT count(*)::int AS c FROM ${clients} WHERE ${clients.email} = ${email}`,
     );
-    // drizzle-orm returns a driver-native result object; neon-http shape is
-    // { rows: [{ c: 1 }] }. Cast narrowly for the assertion only.
     const rows = (duplicates as { rows: Array<{ c: number }> }).rows;
     expect(rows[0]?.c).toBe(1);
   });
@@ -167,11 +143,7 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
   });
 
   it("findAll() with no filters returns every test row ordered by createdAt DESC", async () => {
-    // Insert 3 test fixtures with staggered createdAt via explicit ordering
-    // (upsert order defines DB createdAt since we let the DB apply defaultNow()).
     await repo.upsertByEmail(baseClient({ email: "test-findall-a@example.com", name: "Alpha" }));
-    // Small delay ensures timestamps are strictly ordered even when now() has
-    // millisecond resolution collisions.
     await new Promise((resolve) => setTimeout(resolve, 50));
     await repo.upsertByEmail(baseClient({ email: "test-findall-b@example.com", name: "Bravo" }));
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -195,8 +167,6 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
     await repo.upsertByEmail(
       baseClient({ email: "test-search-ADA-2@example.com", name: "Unrelated" }),
     );
-    // Matches via email substring (the third row) and via name substring (the
-    // first row). Case-insensitive — lowercase query hits uppercase ADA.
     const rows = await repo.findAll({ search: "ada" });
     const emails = rows.map((r) => r.email);
     expect(emails).toContain("test-search-match@example.com");
@@ -264,8 +234,6 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
   });
 
   it("distinctSellers() returns every unique assignedSeller ordered alphabetically", async () => {
-    // Seed three test rows with TWO distinct sellers; ordering must hit both
-    // tokens and must NOT depend on insertion order.
     await repo.upsertByEmail(
       baseClient({ email: "test-ds-a@example.com", assignedSeller: "Zelda" }),
     );
@@ -280,17 +248,13 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
       repo as unknown as { distinctSellers: () => Promise<readonly string[]> }
     ).distinctSellers();
 
-    // Must include our two test sellers (prod rows may add more).
     expect(sellers).toContain("Alma");
     expect(sellers).toContain("Zelda");
 
-    // Global alphabetical order (ASC) — if Alma or Zelda are both present,
-    // Alma must appear before Zelda.
     const almaIdx = sellers.indexOf("Alma");
     const zeldaIdx = sellers.indexOf("Zelda");
     expect(almaIdx).toBeLessThan(zeldaIdx);
 
-    // No duplicates even though we inserted two Alma rows.
     const almaCount = sellers.filter((s) => s === "Alma").length;
     expect(almaCount).toBe(1);
   });
@@ -332,7 +296,6 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
 
     const roundTrip = await repo.findByEmail(email);
     expect(roundTrip?.warnings).toEqual(saved.warnings);
-    // Removed fields must not exist on the type (compile-time check via absence).
     // @ts-expect-error purchaseTimeline was removed
     expect(saved.purchaseTimeline).toBeUndefined();
     // @ts-expect-error decisionMakerRole was removed

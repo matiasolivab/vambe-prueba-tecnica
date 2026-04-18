@@ -13,11 +13,6 @@ import type { PgColumn } from "drizzle-orm/pg-core";
 
 import { clients } from "@/clients/infrastructure/db/schema";
 
-/**
- * Filters applied to every metric query. Every field is optional — an absent
- * field means "no constraint on this dimension". An explicit `false` on
- * `closed` is a real constraint (not "unset").
- */
 export interface MetricFilters {
   readonly assignedSeller?: string;
   readonly industry?: string;
@@ -26,11 +21,6 @@ export interface MetricFilters {
   readonly sentiment?: string;
 }
 
-/**
- * KPI tiles for dashboard Overview. Close-rate, close-rate-by-dimension and
- * objections were dropped in favour of the temporal metrics powering the
- * MoM delta + 12-month trend chart.
- */
 export interface KpiMetrics {
   readonly totalClients: number;
   readonly topPainPoint: {
@@ -39,7 +29,6 @@ export interface KpiMetrics {
   } | null;
 }
 
-/** One row of the sellers ranking. */
 export interface SellerRanking {
   readonly name: string;
   readonly totalClients: number;
@@ -47,12 +36,6 @@ export interface SellerRanking {
   readonly closeRate: number;
 }
 
-/**
- * One row of the seller-conversion stacked bar (Overview). Derived from the
- * same aggregation as SellerRanking but exposes openClients pre-computed
- * and uses the field name `seller` (matches the chart's Y-axis semantics).
- * closeRate is in [0, 1]; the UI multiplies by 100 for display.
- */
 export interface SellerConversion {
   readonly seller: string;
   readonly totalClients: number;
@@ -61,25 +44,21 @@ export interface SellerConversion {
   readonly closeRate: number;
 }
 
-/** One entry of the pain-point frequency distribution. */
 export interface PainPointCount {
   readonly painPoint: string;
   readonly count: number;
 }
 
-/** One entry of the company-size frequency distribution. */
 export interface CompanySizeCount {
   readonly companySize: string;
   readonly count: number;
 }
 
-/** One entry of the top-industries list (excludes "Otros"). */
 export interface IndustryCount {
   readonly industry: string;
   readonly count: number;
 }
 
-/** One cell of the sellers × industries crosstab. */
 export interface SellerByIndustryCell {
   readonly seller: string;
   readonly industry: string;
@@ -88,14 +67,6 @@ export interface SellerByIndustryCell {
   readonly closeRate: number;
 }
 
-/**
- * Analytics service — computes every dashboard metric server-side (RF3.1)
- * with DB-level aggregations so filters recompute in <200ms (RNF1.3).
- *
- * Every method accepts optional `MetricFilters`. `closeRate` values in the
- * sellers ranking emit `0` (never NaN/null) when totals are zero, so the UI
- * never renders divide-by-zero artefacts.
- */
 export class MetricsCalculator {
   public constructor(private readonly db: NeonHttpDatabase) {}
 
@@ -254,8 +225,6 @@ export class MetricsCalculator {
       .map((r) => ({ industry: r.value, count: r.count }));
   }
 
-  // --- private helpers -----------------------------------------------------
-
   private buildWhere(filters?: MetricFilters): SQL | undefined {
     if (!filters) return undefined;
     const conds: SQL[] = [];
@@ -322,16 +291,11 @@ export class MetricsCalculator {
   }
 }
 
-// Defensive divide — avoids NaN when the SQL aggregation returns 0/0.
 function safeRate(closed: number, total: number): number {
   if (!total) return 0;
   return closed / total;
 }
 
-/**
- * Production factory. Reads `DATABASE_URL` from the environment and wires a
- * Neon HTTP driver, mirroring `createDrizzleClientRepository`.
- */
 export function createMetricsCalculator(): MetricsCalculator {
   const url = process.env.DATABASE_URL;
   if (!url) {

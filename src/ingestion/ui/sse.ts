@@ -1,21 +1,3 @@
-/**
- * SSE parser for the upload streaming protocol (PRD §8.6).
- *
- * The upload endpoint emits three event types separated by blank lines
- * (`\n\n` terminators): `progress`, `done`, `error`. `fetch()` delivers the
- * stream as arbitrary chunks, so events may span chunk boundaries.
- *
- * `parseSseEvents` accepts the running buffer and returns:
- *  - `events`: every COMPLETE event block decoded into `{ event, data }`.
- *  - `remainder`: the trailing bytes that did NOT yet end with `\n\n` and
- *    must be prepended to the next chunk by the caller.
- *
- * This is a pure function — trivial to unit-test — and encapsulates the
- * one piece of SSE logic with edge cases (missing event field defaults to
- * `"message"` per the SSE spec; multi-line `data:` fields are joined with
- * `\n`).
- */
-
 export interface SseEvent {
   readonly event: string;
   readonly data: string;

@@ -42,7 +42,6 @@ describe("ClientDetailModal", () => {
       ],
     });
     render(<ClientDetailModal client={c} onClose={() => {}} />);
-    // the badge should surface the count "2" somewhere in the modal header
     expect(screen.getByText(/2\s*(advertencia|warning)/i)).toBeInTheDocument();
   });
 

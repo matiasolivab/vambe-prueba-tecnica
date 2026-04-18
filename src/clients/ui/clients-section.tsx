@@ -3,15 +3,6 @@ import { ClientsTable } from "@/clients/ui/clients-table";
 import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
 import { Card, CardContent } from "@/components/ui/card";
 
-/**
- * §8.5 — Clientes. Server Component: issues a single `findAll()` against
- * Neon and hands the full rows (including transcript + qualitative fields)
- * to the Client table so the drill-down modal never needs a second fetch.
- *
- * Accepts {@link ClientFilters} (RF3.2 + RF3.4 — the table also honors
- * `search` on name/email). Title and description live in the owning
- * page's `SectionHeader`.
- */
 export async function ClientsSection({
   filters,
 }: {

@@ -7,56 +7,30 @@ import { previousYearMonth } from "@/shared/date/format-month-es";
 
 import type { MetricFilters } from "./metrics-calculator";
 
-/**
- * Time-anchored analytics for the dashboard Overview: 12-month trend,
- * month-over-month delta on total clients, and top seller of the anchor
- * month. Every method anchors its window to `MAX(meeting_date)` of the
- * filtered dataset — never to `now()` — so an idle weekend never flattens
- * the tile into "Sin datos".
- *
- * Split from {@link MetricsCalculator} to keep single-responsibility: those
- * aggregations are global/static, these are temporal/anchored. The
- * `buildWhere` helper is intentionally duplicated (rule-of-three).
- */
-
-/** One point of the 12-month clients series. */
 export interface MonthlyClientsPoint {
-  readonly yearMonth: string; // "YYYY-MM"
+  readonly yearMonth: string;
   readonly closed: number;
   readonly open: number;
 }
 
-/** Month-over-month delta for the Total clients KPI. */
 export interface ClientCountMoM {
   readonly current: number;
   readonly previous: number;
-  /** `null` when previous is 0 (no base to divide) or dataset is empty. */
   readonly deltaPct: number | null;
-  /** `"YYYY-MM"` of the anchor month; `""` when dataset is empty. */
   readonly referenceYearMonth: string;
 }
 
-/** Top seller of the anchor month (most closed deals, with tie-breakers). */
 export interface TopSellerByMonth {
   readonly name: string;
   readonly closedInMonth: number;
   readonly totalInMonth: number;
-  /** In [0, 1]. */
   readonly closeRateInMonth: number;
-  readonly yearMonth: string; // "YYYY-MM"
+  readonly yearMonth: string;
 }
 
 export class TemporalMetrics {
   public constructor(private readonly db: NeonHttpDatabase) {}
 
-  /**
-   * Returns 12 ascending monthly buckets anchored at MAX(meeting_date).
-   * Missing months inside the window are filled with {closed:0, open:0}.
-   * Returns `[]` when the filtered dataset has no rows at all.
-   *
-   * The chart's raison d'être is comparing closed vs open series — applying
-   * `filters.closed` would flatten one of the two lines. We strip it locally.
-   */
   public async clientsByMonth(
     filters?: MetricFilters,
   ): Promise<readonly MonthlyClientsPoint[]> {
@@ -68,11 +42,6 @@ export class TemporalMetrics {
     return expandToTwelveMonths(anchor, byMonth);
   }
 
-  /**
-   * Counts clients in the anchor month and the immediately preceding one,
-   * honouring every filter (including `filters.closed`). Anchor = month of
-   * MAX(meeting_date) for the filtered dataset.
-   */
   public async clientCountMoM(
     filters?: MetricFilters,
   ): Promise<ClientCountMoM> {
@@ -93,14 +62,6 @@ export class TemporalMetrics {
     };
   }
 
-  /**
-   * Returns the seller who closed the most deals inside the anchor month.
-   * Tie-breakers: higher close-rate, then alphabetical name. Returns `null`
-   * if no one closed at all (HAVING filter) or the dataset is empty.
-   *
-   * Like the chart, this ignores `filters.closed` — filtering by `closed=false`
-   * would wipe out the ranking on purpose.
-   */
   public async topSellerByMonth(
     filters?: MetricFilters,
   ): Promise<TopSellerByMonth | null> {
@@ -110,11 +71,6 @@ export class TemporalMetrics {
     return this.fetchTopRankedSellerForMonth(where, anchor);
   }
 
-  // --- private helpers -----------------------------------------------------
-
-  // NOTE: mirrored from MetricsCalculator.buildWhere — see design §2.
-  // Duplicated on purpose (rule-of-three); if a third service needs this,
-  // extract to `src/analytics/application/filters-sql.ts`.
   private buildWhere(filters?: MetricFilters): SQL | undefined {
     if (!filters) return undefined;
     const conds: SQL[] = [];
@@ -267,10 +223,6 @@ function expandToTwelveMonths(
   });
 }
 
-/**
- * Production factory. Reads `DATABASE_URL` from the environment and wires a
- * Neon HTTP driver, mirroring {@link createMetricsCalculator}.
- */
 export function createTemporalMetrics(): TemporalMetrics {
   const url = process.env.DATABASE_URL;
   if (!url) {

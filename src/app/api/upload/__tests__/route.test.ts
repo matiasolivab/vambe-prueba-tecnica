@@ -7,21 +7,6 @@ loadEnv({ path: ".env.local", override: true });
 
 import { POST } from "@/app/api/upload/route";
 
-/**
- * Integration tests for POST /api/upload.
- *
- * These tests are deliberately LIGHT: they cover the boundary behaviours
- * (missing file → 400, invalid headers → SSE error event) but NOT the
- * happy-path ingest. A real upload would call OpenAI 60+ times per run
- * and cost ~$0.07; the full pipeline is already tested via
- * `IngestionService` unit tests (task 5.3) and the end-to-end seed run
- * (task 5.4). Manual smoke testing covers the UI flow.
- *
- * The SSE contract under test:
- *   - Invalid headers → `event: error\ndata: {code:"ingestion.invalid_csv_format",...}`
- *   - Missing file   → 400 JSON `{error: "no_file"}`
- */
-
 const hasDbUrl = Boolean(process.env.DATABASE_URL);
 const hasOpenAIKey = Boolean(process.env.OPENAI_API_KEY);
 const canRun = hasDbUrl && hasOpenAIKey;
@@ -40,8 +25,6 @@ async function readStreamText(res: Response): Promise<string> {
 }
 
 function buildRequest(form: FormData): NextRequest {
-  // NextRequest extends Request; FormData is handled by the Fetch body logic
-  // as long as the init is a Request with the multipart body.
   const req = new Request("http://localhost/api/upload", {
     method: "POST",
     body: form,

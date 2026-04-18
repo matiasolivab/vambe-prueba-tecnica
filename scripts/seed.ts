@@ -9,21 +9,9 @@ import {
 } from "@/ingestion/application/ingestion-factory";
 import type { IngestionReport } from "@/ingestion/application/ingestion-service";
 
-/**
- * End-to-end seed runner (PRD §RF4.1–4.2, ARCHITECTURE §7).
- *
- * Delegates pipeline assembly to `buildIngestionService()` so the seed and
- * the POST /api/upload route share EXACTLY the same wiring — no drift.
- *
- * Idempotent: `upsertByEmail` matches by email, so re-running updates
- * existing rows in place. Safe to re-run if the process is interrupted.
- */
 async function main(): Promise<void> {
   const { service, dispose } = buildIngestionService({
-    // Silent by default: progress goes to stdout below, errors go to console.error.
-    loggerSink: () => {
-      /* silent */
-    },
+    loggerSink: () => {},
   });
 
   try {

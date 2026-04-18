@@ -6,18 +6,6 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-/**
- * Presentation-only KPI tile for the dashboard Overview. Dumb component —
- * all formatting (percent, captions) happens at the page level so the tile
- * stays trivially testable and composable.
- *
- * The optional `delta` prop renders a small badge next to the value with the
- * month-over-month direction. Four directions are supported:
- *  - `up`   → emerald tone + "↑" arrow
- *  - `down` → rose tone + "↓" arrow (absolute value — sign is conveyed by arrow)
- *  - `flat` → zinc tone, literal "0%", no arrow
- *  - `na`   → zinc tone, literal "N/A", no arrow (for previous=0 or empty dataset)
- */
 export interface KpiTileProps {
   readonly label: string;
   readonly value: string | number;

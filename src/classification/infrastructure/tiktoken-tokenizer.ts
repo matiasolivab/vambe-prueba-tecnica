@@ -1,14 +1,6 @@
 import { encoding_for_model, type Tiktoken } from "tiktoken";
 import type { Tokenizer } from "@/classification/application/token-budget";
 
-/**
- * Real `Tokenizer` adapter backed by tiktoken's `gpt-4o-mini` encoding
- * (`cl100k_base`-family). Wraps the WASM handle so call sites get a narrow
- * port surface and explicit lifecycle (`dispose` → `.free()`).
- *
- * Dependency direction: the port lives in `application/`; this infrastructure
- * adapter imports and implements it (inward-pointing).
- */
 export class TiktokenTokenizer implements Tokenizer {
   private readonly encoder: Tiktoken;
   private readonly decoder: TextDecoder;

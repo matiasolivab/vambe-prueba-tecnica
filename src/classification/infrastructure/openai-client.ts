@@ -16,27 +16,6 @@ import {
 } from "@/classification/domain/errors";
 import type { Logger } from "@/shared/infrastructure/logger";
 
-/**
- * OpenAI adapter for the `LLMClient` port.
- *
- * Responsibilities (ARCHITECTURE §13):
- *  - Rule 1 : Structured Outputs via `zodResponseFormat(ClassificationSchema)`
- *             + `chat.completions.parse` — the JSON Schema contract is
- *             enforced server-side; `.parsed` is typed.
- *  - Rule 3 : temperature 0 — deterministic-ish output.
- *  - Rule 7 : retry ladder — 1s / 2s / 4s (base `backoffBaseMs * 2^(i-1)`),
- *             maxAttempts 3 by default. Retries ONLY 429, ≥500, connection
- *             timeouts and connection errors.
- *  - Rule 13: persists the EXACT `model` id the API echoes back
- *             (e.g. `gpt-4o-mini-2024-07-18`) so the caller can store it in
- *             the client row for audit / replay.
- *
- * The class stays intentionally DI-pure: every collaborator (OpenAI SDK,
- * schema, sleep, logger) is injected. The `createOpenAIClient` factory below
- * assembles a production instance from an API key.
- */
-
-/** Sleep primitive — injectable so tests don't actually wait. */
 export type Sleep = (ms: number) => Promise<void>;
 
 const DEFAULT_MODEL = "gpt-4o-mini";
@@ -102,7 +81,6 @@ export class OpenAIClient implements LLMClient {
       }
     }
 
-    // Defensive — unreachable under normal control flow.
     throw this.mapTerminalError(undefined, maxAttempts, startedAt);
   }
 
@@ -133,7 +111,6 @@ export class OpenAIClient implements LLMClient {
       throw new InvalidSchemaError([{ path: [], message: reason }]);
     }
 
-    // Belt check: re-validate with Zod in case the SDK surfaces any surprise.
     const classification = this.schema.parse(message.parsed);
     const modelVersion = response.model ?? this.options.model;
 
@@ -200,10 +177,6 @@ export class OpenAIClient implements LLMClient {
   }
 }
 
-/**
- * Factory: one-line construction for production wiring.
- * Tests prefer the class constructor with hand-crafted mocks.
- */
 export function createOpenAIClient(
   apiKey: string,
   schema: ZodType<Classification>,

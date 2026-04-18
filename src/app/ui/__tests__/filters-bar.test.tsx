@@ -4,19 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FiltersBar } from "@/app/ui/filters/filters-bar";
 
-/**
- * FiltersBar — compact popover trigger (PRD §RF3.2 / §RF3.4). Contract:
- *   - Default: only the `Filtros` trigger pill, no selects visible.
- *   - Trigger shows a count badge when at least one filter is set.
- *   - Opening the popover surfaces the 5 selects + search + "Limpiar todo".
- *   - Select changes push `?key=value` — selecting "Todos/Todas" deletes the key.
- *   - Search debounces 400ms before pushing `?search=<text>`.
- *
- * The router is mocked so we can assert URL pushes without a real
- * navigation. `useSearchParams()` returns a fresh `URLSearchParams` each
- * render so consecutive tests don't leak state through the closure.
- */
-
 const pushMock = vi.fn();
 let currentSp = "";
 
@@ -109,8 +96,6 @@ describe("FiltersBar", () => {
     await user.click(screen.getByRole("button", { name: /filtros/i }));
     const input = await screen.findByPlaceholderText(/nombre o email/i);
 
-    // Switch to fake timers only AFTER the popover is open so user-event
-    // can resolve its own async work against real timers.
     vi.useFakeTimers();
     await act(async () => {
       fireEvent.change(input, { target: { value: "juan" } });

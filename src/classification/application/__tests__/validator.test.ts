@@ -7,14 +7,6 @@ import {
 } from "../validator";
 import type { Classification } from "@/classification/domain/schema";
 
-/**
- * Builds a fully-valid baseline Classification fixture matching the Zod schema
- * (see `classification/domain/schema.ts`). Overrides are merged on top — lets
- * each test express only the fields relevant to the rule under exercise.
- *
- * Baseline is intentionally consistent (no rule fires) so overrides are the
- * ONLY trigger for any warning.
- */
 function makeClassification(
   overrides: Partial<Classification> = {},
 ): Classification {
@@ -62,8 +54,6 @@ describe("ClassificationValidator", () => {
   it("fires multiple rules simultaneously for overlapping inconsistencies", () => {
     const validator = new ClassificationValidator();
 
-    // Verify the multi-rule path with a custom injected pair so the test stays
-    // self-contained (default rules table is empty in v3.0.0).
     const always1: InconsistencyRule = {
       name: "rule_a",
       severity: "warning",

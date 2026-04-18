@@ -7,15 +7,6 @@ import { JsonLogger } from "@/shared/infrastructure/logger";
 import { FixedClock } from "@/shared/infrastructure/clock";
 import { TokenLimitExceededError } from "@/classification/domain/errors";
 
-/**
- * FakeTokenizer: 1 char = 1 token. token id = code point.
- *
- * Round-trips any UTF-8 string exactly:
- *   decode(encode(x)) === x
- *
- * Lets tests reason about budget arithmetic in char counts (simple) and keeps
- * the suite free of the real tiktoken WASM cold-start.
- */
 class FakeTokenizer implements Tokenizer {
   public encode(text: string): Uint32Array {
     const codes: number[] = [];
@@ -108,7 +99,6 @@ describe("TokenBudgetService", () => {
   });
 
   it("throws TokenLimitExceededError when post-truncation still exceeds budget", () => {
-    // Budget is smaller than the marker itself → truncation cannot succeed.
     const giantMarker = "X".repeat(100);
     const service = new TokenBudgetService(tokenizer, logger, 50, giantMarker);
 
@@ -161,7 +151,6 @@ describe("TokenBudgetService", () => {
     expect(result.originalTokens).toBe(2500);
     expect(result.finalTokens).toBeLessThanOrEqual(1000);
     expect(result.text).toContain(DEFAULT_MARKER);
-    // round-trip: re-encoding the output yields the same token count
     expect(tokenizer.encode(result.text).length).toBe(result.finalTokens);
   });
 });

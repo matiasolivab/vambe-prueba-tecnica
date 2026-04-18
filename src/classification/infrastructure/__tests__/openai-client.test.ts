@@ -14,22 +14,8 @@ import {
 import { JsonLogger } from "@/shared/infrastructure/logger";
 import { FixedClock } from "@/shared/infrastructure/clock";
 
-/**
- * Tests for the OpenAI adapter.
- *
- * We never reach out to OpenAI. The adapter's public surface is
- * `classify(system, user)`, which internally calls
- * `openai.chat.completions.parse({...})`. We fake that one method with
- * `vi.fn()` and script per-scenario behaviour via the `mockOpenAI` helper.
- *
- * Retry timing is exercised via an injected `Sleep` fake — nothing in these
- * tests actually waits. The assertion surface is the sequence of sleep
- * durations the adapter requested (1s, 2s, 4s by default).
- */
-
 const MODEL_VERSION = "gpt-4o-mini-2024-07-18";
 
-/** Canonical classification fixture — satisfies ClassificationSchema exactly. */
 const goodClassification: Classification = {
   reasoning:
     "Cliente menciona e-commerce con 500 tickets diarios repetitivos; saturación evidente del equipo.",
@@ -62,7 +48,6 @@ interface MockBundle {
   readonly parse: ReturnType<typeof vi.fn>;
 }
 
-/** Build a minimal object shaped like `openai.chat.completions.parse`'s return. */
 function successResponse(): unknown {
   return {
     choices: [
@@ -92,8 +77,6 @@ function refusalResponse(): unknown {
 }
 
 function badSchemaResponse(): unknown {
-  // `parsed` is object-shaped but the `industry` value is not in the enum AND
-  // `needsSummary` is too short (<50). The belt-check Zod parse catches this.
   return {
     choices: [
       {
@@ -111,11 +94,6 @@ function badSchemaResponse(): unknown {
   };
 }
 
-/**
- * Builds a fake OpenAI client plus the underlying parse mock, configured for
- * the requested behaviour. Returning the mock separately lets tests assert on
- * call count / arguments.
- */
 function mockOpenAI(scenario: Scenario): MockBundle {
   const parse = vi.fn();
 
@@ -209,7 +187,6 @@ function mockOpenAI(scenario: Scenario): MockBundle {
     }
   }
 
-  // Only the `.chat.completions.parse` surface is exercised.
   const client = {
     chat: { completions: { parse } },
   } as unknown as OpenAI;
@@ -323,7 +300,6 @@ describe("OpenAIClient", () => {
     );
 
     expect(bundle.parse).toHaveBeenCalledTimes(3);
-    // Between attempts 1→2 and 2→3: 2 sleeps. None after the last attempt.
     expect(captured.sleep).toHaveBeenCalledTimes(2);
     expect(captured.sleep).toHaveBeenNthCalledWith(1, 1000);
     expect(captured.sleep).toHaveBeenNthCalledWith(2, 2000);
@@ -383,7 +359,6 @@ describe("OpenAIClient", () => {
       expect(e.issues.length).toBeGreaterThan(0);
       expect(e.issues.some((i) => i.path.includes("industry"))).toBe(true);
     }
-    // Schema failures are NOT retriable.
     expect(bundle.parse).toHaveBeenCalledTimes(1);
     expect(captured.sleep).not.toHaveBeenCalled();
   });
@@ -423,7 +398,6 @@ describe("OpenAIClient", () => {
 
   it("modelVersion propagation — uses EXACT id from response.model", async () => {
     const bundle = mockOpenAI("success");
-    // Override: return a different concrete model id.
     bundle.parse.mockResolvedValue({
       choices: [
         {

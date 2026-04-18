@@ -14,13 +14,6 @@ import {
 
 import type { SellerRanking } from "@/analytics/application/metrics-calculator";
 
-/**
- * Bar chart of sellers ranked by close rate (§8.2). Colors come from CSS
- * tokens (`--primary`, `--accent`, `--border`, `--muted-foreground`) so
- * the chart follows the theme without hardcoded hex. The #1 bar gets the
- * accent (amber) fill plus a "TOP" chip floated above it.
- */
-
 const TOKEN = {
   primary: "var(--primary)",
   accent: "var(--accent)",
@@ -128,10 +121,6 @@ export function SellersBarChart({ data }: SellersBarChartProps) {
   );
 }
 
-/**
- * Recharts passes `{ index, x, y, width }` for each bar; we only render
- * the "TOP" chip on the leading bar. Positioned just above the bar top.
- */
 function TopChip(props: {
   index?: number;
   x?: number | string;

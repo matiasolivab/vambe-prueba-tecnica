@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,8 +14,21 @@ import {
 
 import type { SellerRanking } from "@/analytics/application/metrics-calculator";
 
-const CYAN = "#22d3ee"; // cyan-400 — primary
-const AMBER = "#fbbf24"; // amber-400 — top performer
+/**
+ * Bar chart of sellers ranked by close rate (§8.2). Colors come from CSS
+ * tokens (`--primary`, `--accent`, `--border`, `--muted-foreground`) so
+ * the chart follows the theme without hardcoded hex. The #1 bar gets the
+ * accent (amber) fill plus a "TOP" chip floated above it.
+ */
+
+const TOKEN = {
+  primary: "var(--primary)",
+  accent: "var(--accent)",
+  border: "var(--border)",
+  mutedFg: "var(--muted-foreground)",
+  popover: "var(--popover)",
+  popoverFg: "var(--popover-foreground)",
+};
 
 export interface SellersBarChartProps {
   readonly data: readonly SellerRanking[];
@@ -27,16 +41,8 @@ interface ChartDatum {
   readonly closed: number;
 }
 
-/**
- * Bar chart of sellers ranked by close rate (§8.2).
- *
- * Data prep is minimal: trust the service, cap at top 10 (defensive), then
- * pre-project the close rate to percent so Recharts reads a flat number.
- */
 export function SellersBarChart({ data }: SellersBarChartProps) {
-  if (data.length === 0) {
-    return <EmptyState />;
-  }
+  if (data.length === 0) return <EmptyState />;
 
   const chartData = toChartData(data);
 
@@ -47,39 +53,122 @@ export function SellersBarChart({ data }: SellersBarChartProps) {
       className="h-80 w-full"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
-          <CartesianGrid stroke="#3f3f46" vertical={false} />
-          <XAxis dataKey="name" tick={{ fill: "#d4d4d8", fontSize: 12 }} stroke="#52525b" />
+        <BarChart
+          data={chartData}
+          margin={{ top: 28, right: 12, left: 0, bottom: 8 }}
+        >
+          <defs>
+            <linearGradient id="sellers-primary" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={TOKEN.primary} stopOpacity={0.95} />
+              <stop offset="100%" stopColor={TOKEN.primary} stopOpacity={0.55} />
+            </linearGradient>
+            <linearGradient id="sellers-accent" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={TOKEN.accent} stopOpacity={1} />
+              <stop offset="100%" stopColor={TOKEN.accent} stopOpacity={0.7} />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid
+            stroke={TOKEN.border}
+            strokeOpacity={0.5}
+            vertical={false}
+          />
+          <XAxis
+            dataKey="name"
+            tick={{ fill: TOKEN.mutedFg, fontSize: 12 }}
+            tickLine={false}
+            axisLine={{ stroke: TOKEN.border }}
+          />
           <YAxis
             domain={[0, 100]}
             tickFormatter={(v: number) => `${v}%`}
-            tick={{ fill: "#d4d4d8", fontSize: 12 }}
-            stroke="#52525b"
+            tick={{ fill: TOKEN.mutedFg, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
           />
           <Tooltip
-            cursor={{ fill: "rgba(34,211,238,0.08)" }}
+            cursor={{ fill: "color-mix(in oklch, var(--primary) 8%, transparent)" }}
             contentStyle={{
-              backgroundColor: "#18181b",
-              border: "1px solid #3f3f46",
-              color: "#e4e4e7",
+              backgroundColor: TOKEN.popover,
+              border: `1px solid ${TOKEN.border}`,
+              borderRadius: "0.5rem",
+              color: TOKEN.popoverFg,
+              boxShadow: "0 10px 40px -15px rgba(0,0,0,0.12)",
+              fontSize: "0.8125rem",
             }}
-            formatter={(value: unknown, _name: unknown, ctx: { payload?: ChartDatum }) => {
-              const payload = ctx.payload;
-              if (!payload) return [`${String(value)}%`, "Tasa de cierre"];
+            formatter={(
+              value: unknown,
+              _name: unknown,
+              ctx: { payload?: ChartDatum },
+            ) => {
+              const p = ctx.payload;
+              if (!p) return [`${String(value)}%`, "Tasa de cierre"];
               return [
-                `${payload.closeRatePct}% (${payload.closed}/${payload.total})`,
+                `${p.closeRatePct}% · ${p.closed}/${p.total}`,
                 "Tasa de cierre",
               ];
             }}
           />
-          <Bar dataKey="closeRatePct" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="closeRatePct" radius={[6, 6, 0, 0]} maxBarSize={48}>
             {chartData.map((entry, index) => (
-              <Cell key={entry.name} fill={index === 0 ? AMBER : CYAN} />
+              <Cell
+                key={entry.name}
+                fill={
+                  index === 0
+                    ? "url(#sellers-accent)"
+                    : "url(#sellers-primary)"
+                }
+              />
             ))}
+            <LabelList dataKey="closeRatePct" content={TopChip} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
     </section>
+  );
+}
+
+/**
+ * Recharts passes `{ index, x, y, width }` for each bar; we only render
+ * the "TOP" chip on the leading bar. Positioned just above the bar top.
+ */
+function TopChip(props: {
+  index?: number;
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+}) {
+  if (props.index !== 0) return null;
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const width = Number(props.width ?? 0);
+  const cx = x + width / 2;
+  const cy = y - 12;
+  const chipWidth = 36;
+  const chipHeight = 18;
+  return (
+    <g transform={`translate(${cx - chipWidth / 2}, ${cy - chipHeight / 2})`}>
+      <rect
+        width={chipWidth}
+        height={chipHeight}
+        rx={9}
+        fill="var(--accent)"
+        fillOpacity={0.15}
+        stroke="var(--accent)"
+        strokeOpacity={0.45}
+      />
+      <text
+        x={chipWidth / 2}
+        y={chipHeight / 2 + 4}
+        textAnchor="middle"
+        fontSize={10}
+        fontWeight={600}
+        fill="var(--accent-foreground)"
+        style={{ letterSpacing: "0.04em" }}
+      >
+        TOP
+      </text>
+    </g>
   );
 }
 
@@ -99,7 +188,7 @@ function toChartData(data: readonly SellerRanking[]): ChartDatum[] {
 function EmptyState() {
   return (
     <div className="flex h-80 w-full items-center justify-center">
-      <p className="text-zinc-500 text-sm">Sin datos</p>
+      <p className="text-sm text-muted-foreground">Sin datos</p>
     </div>
   );
 }

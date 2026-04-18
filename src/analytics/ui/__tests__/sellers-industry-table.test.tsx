@@ -54,11 +54,11 @@ describe("SellersIndustryTable", () => {
     expect(within(cell).getByText("3/4")).toBeInTheDocument();
   });
 
-  it("highlights cells where close rate >= 0.75 with cyan accent class", () => {
+  it("highlights cells where close rate >= 0.75 with a primary ring", () => {
     render(<SellersIndustryTable data={sampleData} />);
     const hot = screen.getByTestId("cell-Toro-Tecnología");
     const cold = screen.getByTestId("cell-Ana-Tecnología");
-    expect(hot.className).toMatch(/cyan/);
-    expect(cold.className).not.toMatch(/cyan/);
+    expect(hot.className).toMatch(/ring-primary/);
+    expect(cold.className).not.toMatch(/ring-primary/);
   });
 });

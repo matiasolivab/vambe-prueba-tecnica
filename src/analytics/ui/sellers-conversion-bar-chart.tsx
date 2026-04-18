@@ -33,7 +33,7 @@ export function SellersConversionBarChart({
   const maxTotalClients = Math.max(...data.map((d) => d.totalClients), 1);
 
   return (
-    <div className="divide-y divide-zinc-800/60">
+    <div>
       {data.map((row) => {
         const outerWidthPct = (row.totalClients / maxTotalClients) * 100;
         const closedWidthPct = row.closeRate * 100;
@@ -46,7 +46,7 @@ export function SellersConversionBarChart({
             title={tooltip}
             className="grid grid-cols-[1fr_auto_3fr] items-center gap-4 py-2"
           >
-            <span className="text-zinc-50 text-sm truncate">{row.seller}</span>
+            <span className="text-zinc-400 text-sm truncate">{row.seller}</span>
             <span className="text-zinc-300 text-sm tabular-nums text-right">
               {row.totalClients}
             </span>

@@ -82,7 +82,10 @@ export default async function DashboardOverviewPage({
           caption={view.topPainPointCaption}
         />
       </section>
-      <section aria-label="Tendencia 12 meses" className="mt-6">
+      <section
+        aria-label="Tendencia y conversión"
+        className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2"
+      >
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
@@ -93,8 +96,6 @@ export default async function DashboardOverviewPage({
             <ClientsByMonthChart data={series} />
           </CardContent>
         </Card>
-      </section>
-      <section aria-label="Conversión por vendedor" className="mt-6">
         <Card>
           <CardHeader>
             <div className="flex flex-row items-center justify-between gap-4">
@@ -103,7 +104,7 @@ export default async function DashboardOverviewPage({
                   Conversión por vendedor
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  Largo = reuniones totales · color = cerradas vs abiertas
+                  Volumen de reuniones y tasa de cierre de cada vendedor
                 </p>
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">

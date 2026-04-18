@@ -16,8 +16,7 @@ import { formatYearMonthEs } from "@/shared/date/format-month-es";
 
 /**
  * 12-month line chart comparing closed vs. open clients. Closed = amber-400
- * (wins/highlight); open = cyan-400 (neutral pipeline). Dashed stroke on the
- * open series gives non-colour-based differentiation for accessibility.
+ * (wins/highlight); open = cyan-400 (neutral pipeline).
  *
  * Expects the `data` array from `TemporalMetrics.clientsByMonth()` — either
  * exactly 12 ascending monthly buckets or an empty array (rendered as an
@@ -105,7 +104,6 @@ export function ClientsByMonthChart({ data }: ClientsByMonthChartProps) {
             dataKey="open"
             stroke={COLOR_OPEN}
             strokeWidth={2}
-            strokeDasharray="4 3"
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
           />

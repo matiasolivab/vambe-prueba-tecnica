@@ -30,7 +30,6 @@ import {
 import { getDashboardSellers } from "./data";
 import { SectionHeader } from "./ui/section-header";
 
-// KPIs must reflect live Neon data on every request — no ISR, no static cache.
 export const dynamic = "force-dynamic";
 
 export default async function DashboardOverviewPage({
@@ -41,9 +40,6 @@ export default async function DashboardOverviewPage({
   const { metricFilters } = await resolveDashboardFilters(searchParams);
   const calc = createMetricsCalculator();
   const temporal = createTemporalMetrics();
-  // The stacked bar chart splits closed vs open — applying filters.closed
-  // would flatten one series. Strip it locally (same pattern as the 12-month
-  // line chart above, which also ignores `closed`).
   const conversionFilters = { ...metricFilters, closed: undefined };
   const [kpis, sellers, countMoM, topSeller, series, conversion,
          painCounts, sizeCounts, topInd, topLeadSources] =
@@ -142,14 +138,11 @@ export default async function DashboardOverviewPage({
         </Card>
       </section>
 
-      <section aria-label="Pain points principales" className="mt-6">
-        <PainPointsMatrix data={painCounts} />
-      </section>
-
       <section
-        aria-label="Tamaño, captación e industrias"
-        className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+        aria-label="Pains y tamaño de empresa"
+        className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2"
       >
+        <PainPointsMatrix data={painCounts} />
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
@@ -160,6 +153,12 @@ export default async function DashboardOverviewPage({
             <CompanySizeBarChart data={sizeCounts} />
           </CardContent>
         </Card>
+      </section>
+
+      <section
+        aria-label="Captación e industrias"
+        className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2"
+      >
         <TopLeadSourcesCard data={topLeadSources} />
         <TopIndustriesCard data={topInd} />
       </section>

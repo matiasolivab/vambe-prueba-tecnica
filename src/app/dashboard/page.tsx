@@ -6,8 +6,11 @@ import {
   type TopSellerByMonth,
 } from "@/analytics/application/temporal-metrics";
 import { ClientsByMonthChart } from "@/analytics/ui/clients-by-month-chart";
+import { CompanySizeBarChart } from "@/analytics/ui/company-size-bar-chart";
 import { KpiTile } from "@/analytics/ui/kpi-tile";
+import { PainPointsMatrix } from "@/analytics/ui/pain-points-matrix";
 import { SellersConversionBarChart } from "@/analytics/ui/sellers-conversion-bar-chart";
+import { TopIndustriesCard } from "@/analytics/ui/top-industries-card";
 import {
   Card,
   CardContent,
@@ -41,7 +44,8 @@ export default async function DashboardOverviewPage({
   // would flatten one series. Strip it locally (same pattern as the 12-month
   // line chart above, which also ignores `closed`).
   const conversionFilters = { ...metricFilters, closed: undefined };
-  const [kpis, sellers, countMoM, topSeller, series, conversion] =
+  const [kpis, sellers, countMoM, topSeller, series, conversion,
+         painCounts, sizeCounts, topInd] =
     await Promise.all([
       calc.kpis(metricFilters),
       getDashboardSellers(),
@@ -49,6 +53,9 @@ export default async function DashboardOverviewPage({
       temporal.topSellerByMonth(metricFilters),
       temporal.clientsByMonth(metricFilters),
       calc.sellerConversion(conversionFilters),
+      calc.painPointCounts(metricFilters),
+      calc.companySizeDistribution(metricFilters),
+      calc.topIndustries(metricFilters),
     ]);
   const view = formatOverview({ kpis, countMoM, topSeller });
 
@@ -131,6 +138,35 @@ export default async function DashboardOverviewPage({
             <SellersConversionBarChart data={conversion} />
           </CardContent>
         </Card>
+      </section>
+
+      <section aria-label="Pains más frecuentes" className="mt-6">
+        <div className="mb-3">
+          <h2 className="text-sm font-medium text-zinc-50">
+            Pains más frecuentes
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Frecuencia de menciones agrupadas por tipo de dolor.
+          </p>
+        </div>
+        <PainPointsMatrix data={painCounts} />
+      </section>
+
+      <section
+        aria-label="Composición de cartera"
+        className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Tamaño de empresa
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CompanySizeBarChart data={sizeCounts} />
+          </CardContent>
+        </Card>
+        <TopIndustriesCard data={topInd} />
       </section>
     </>
   );

@@ -47,6 +47,20 @@ export interface SellerRanking {
   readonly closeRate: number;
 }
 
+/**
+ * One row of the seller-conversion stacked bar (Overview). Derived from the
+ * same aggregation as SellerRanking but exposes openClients pre-computed
+ * and uses the field name `seller` (matches the chart's Y-axis semantics).
+ * closeRate is in [0, 1]; the UI multiplies by 100 for display.
+ */
+export interface SellerConversion {
+  readonly seller: string;
+  readonly totalClients: number;
+  readonly closedClients: number;
+  readonly openClients: number;
+  readonly closeRate: number;
+}
+
 /** One cell of the sellers × industries crosstab. */
 export interface SellerByIndustryCell {
   readonly seller: string;
@@ -100,6 +114,34 @@ export class MetricsCalculator {
       closedCount: r.closed,
       closeRate: safeRate(r.closed, r.total),
     }));
+  }
+
+  public async sellerConversion(
+    filters?: MetricFilters,
+  ): Promise<readonly SellerConversion[]> {
+    const where = this.buildWhere(filters);
+    const rows = await this.db
+      .select({
+        seller: clients.assignedSeller,
+        total: sql<number>`count(*)::int`,
+        closed: sql<number>`sum(case when ${clients.closed} then 1 else 0 end)::int`,
+      })
+      .from(clients)
+      .where(where)
+      .groupBy(clients.assignedSeller);
+    return rows
+      .map((r) => ({
+        seller: r.seller,
+        totalClients: r.total,
+        closedClients: r.closed,
+        openClients: r.total - r.closed,
+        closeRate: safeRate(r.closed, r.total),
+      }))
+      .sort(
+        (a, b) =>
+          b.totalClients - a.totalClients ||
+          a.seller.localeCompare(b.seller),
+      );
   }
 
   public async sellerByIndustry(

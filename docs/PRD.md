@@ -26,12 +26,11 @@ Una aplicación web que:
 
 ### De producto
 - **O1.** Convertir 60+ transcripciones en un dataset estructurado y consultable en minutos.
-- **O2.** Responder 5 preguntas estratégicas del equipo de ventas:
+- **O2.** Responder 4 preguntas estratégicas del equipo de ventas:
   1. ¿Cuál es nuestra tasa de cierre por vendedor?
   2. ¿Qué industrias / tamaños de empresa convierten mejor?
   3. ¿Qué objeciones están matando más deals?
   4. ¿Qué pain points son los que mejor convertimos?
-  5. ¿Qué rol del decisor cierra más?
 - **O3.** Permitir cargar CSVs nuevos y ver los insights actualizados sin tocar código.
 
 ### Técnicos
@@ -64,7 +63,7 @@ Responsable de performance del equipo de ventas. Necesita entender qué funciona
 ### In scope
 - Procesamiento del CSV entregado (60 clientes) como seed inicial.
 - Upload de CSVs nuevos en runtime con clasificación en vivo.
-- Clasificación LLM con las **10 dimensiones** definidas (§7).
+- Clasificación LLM con las **8 dimensiones** definidas (§7).
 - Dashboard con las **6 secciones** definidas (§8).
 - Merge por email al re-subir CSV.
 - Deploy público en Vercel.
@@ -91,8 +90,8 @@ Responsable de performance del equipo de ventas. Necesita entender qué funciona
 - **RF1.5** La UI muestra progreso en vivo (N de M filas procesadas) vía SSE o polling.
 
 ### RF2 — Clasificación LLM
-- **RF2.1** Por cada transcripción, el sistema extrae **10 dimensiones** (§7) + un campo `reasoning` vía OpenAI `gpt-4o-mini` + Structured Outputs + Zod.
-- **RF2.2** Las 8 dimensiones categóricas están limitadas por enums cerrados. El LLM no puede devolver valores fuera de la lista.
+- **RF2.1** Por cada transcripción, el sistema extrae **8 dimensiones** (§7) + un campo `reasoning` vía OpenAI `gpt-4o-mini` + Structured Outputs + Zod.
+- **RF2.2** Las 6 dimensiones categóricas están limitadas por enums cerrados. El LLM no puede devolver valores fuera de la lista.
 - **RF2.3** El Zod schema fuerza **Chain-of-Thought**: el campo `reasoning` es el PRIMER campo de la respuesta, antes de las dimensiones. El modelo razona antes de clasificar (mitiga degradación por format restriction).
 - **RF2.4** Si la API falla (timeout, rate limit, 5xx) → retry 3x con exponential backoff.
 - **RF2.5** Si falla definitivamente → fila queda con `classification_status = 'failed'` + `error_message`. Visible en la UI.
@@ -148,9 +147,9 @@ Responsable de performance del equipo de ventas. Necesita entender qué funciona
 
 ## 7. Dimensiones de categorización
 
-**10 dimensiones que el LLM extrae de cada transcripción.** (Decididas tras análisis del CSV — ver `engram://vambe/llm-dimensions`).
+**8 dimensiones que el LLM extrae de cada transcripción.** (Decididas tras análisis del CSV — ver `engram://vambe/llm-dimensions`).
 
-### 7.1 Categóricas (8) — para filtros y gráficos
+### 7.1 Categóricas (6) — para filtros y gráficos
 
 | # | Campo | Tipo | Valores posibles |
 |---|-------|------|------------------|
@@ -158,21 +157,19 @@ Responsable de performance del equipo de ventas. Necesita entender qué funciona
 | 2 | `company_size` | `enum` | Startup, PYME, Mid-market, Enterprise |
 | 3 | `main_pain_point` | `enum` | Volumen Repetitivo, Equipo Saturado, Respuestas Lentas, Pérdida de Personalización, Integración Técnica, Consultas Especializadas, Variabilidad Estacional |
 | 4 | `key_objection` | `enum` | Especificidad Técnica, Integración, Desconfianza Automatización, Timing Bajo, Compliance, Ninguna |
-| 5 | `purchase_timeline` | `enum` | Urgente (<2 sem), Corto (2-8 sem), Largo (2+ meses), Indefinido |
-| 6 | `buying_signal` | `enum` | Muy Interesado, Evaluando, Tibio, Frío |
-| 7 | `decision_maker_role` | `enum` | CEO/Fundador, Manager de Área, Analista/Coordinador, Comité |
-| 8 | `sentiment` | `enum` | Positivo, Neutro, Negativo |
+| 5 | `buying_signal` | `enum` | Muy Interesado, Evaluando, Tibio, Frío |
+| 6 | `sentiment` | `enum` | Positivo, Neutro, Negativo |
 
 ### 7.2 Cualitativas (2) — texto libre extraído por LLM
 
 | # | Campo | Tipo | Longitud |
 |---|-------|------|----------|
-| 9 | `needs_summary` | `string` | 100-200 palabras — resumen de necesidades específicas del cliente |
-| 10 | `next_steps` | `string` | 50-150 palabras — próximos pasos acordados o sugeridos |
+| 7 | `needs_summary` | `string` | 50-100 palabras — resumen de necesidades específicas del cliente |
+| 8 | `next_steps` | `string` | 25-75 palabras — próximos pasos acordados o sugeridos |
 
 ### 7.3 Meta-campo: `reasoning` (no es dimensión, es traza)
 
-Además de las 10 dimensiones, el schema incluye un campo **`reasoning: string`** como PRIMER campo de la respuesta del LLM (antes de los categóricos).
+Además de las 8 dimensiones, el schema incluye un campo **`reasoning: string`** como PRIMER campo de la respuesta del LLM (antes de los categóricos).
 
 - **Propósito:** Chain-of-Thought forzado. El modelo debe explicar su análisis ANTES de emitir los valores categóricos.
 - **Beneficios:**
@@ -181,9 +178,9 @@ Además de las 10 dimensiones, el schema incluye un campo **`reasoning: string`*
 - **No se muestra en el dashboard principal.** Queda en DB como parte de la traza de auditoría, accesible desde el modal de detalle del cliente si se quiere investigar.
 
 ### 7.4 Justificación de las dimensiones
-- **Basadas en data real.** El análisis de las 60 transcripciones reveló patrones consistentes para estos 10 campos. No son genéricos.
+- **Basadas en data real.** El análisis de las 60 transcripciones reveló patrones consistentes para estos 8 campos. No son genéricos.
 - **Sesgadas a accionabilidad.** Cada dimensión responde a una pregunta de negocio: "¿dónde invertir? ¿quién cierra más? ¿qué nos frena?".
-- **Cierres semánticos** (`Otros`, `Ninguna`, `Indefinido`) **evitan alucinaciones.** El LLM tiene siempre una opción válida cuando la info no está.
+- **Cierres semánticos** (`Otros`, `Ninguna`) **evitan alucinaciones.** El LLM tiene siempre una opción válida cuando la info no está.
 
 ---
 
@@ -203,10 +200,8 @@ Además de las 10 dimensiones, el schema incluye un campo **`reasoning: string`*
 ### 8.3 — Análisis de cierre (núcleo del valor)
 - Tasa de cierre por industria (bar).
 - Tasa de cierre por tamaño de empresa (bar).
-- Tasa de cierre por rol del decisor (bar).
 - Tasa de cierre por sentiment (bar).
 - Tasa de cierre por buying_signal (bar).
-- Tasa de cierre por timeline (bar).
 
 ### 8.4 — Por qué perdemos deals (key_objection)
 - Top 5 objeciones en **no-cerrados** (horizontal bar).

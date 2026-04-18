@@ -60,9 +60,6 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                 Sentiment
               </TableHead>
               <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
-                Señal
-              </TableHead>
-              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Status
               </TableHead>
             </TableRow>
@@ -103,7 +100,6 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                   <ClosedBadge closed={c.closed} />
                 </TableCell>
                 <TableCell>{c.sentiment ?? "—"}</TableCell>
-                <TableCell>{c.buyingSignal ?? "—"}</TableCell>
                 <TableCell>
                   <StatusBadges client={c} />
                 </TableCell>

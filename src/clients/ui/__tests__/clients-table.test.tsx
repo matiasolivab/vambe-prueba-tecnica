@@ -27,7 +27,6 @@ describe("ClientsTable", () => {
       "Tamaño",
       "Estado",
       "Sentiment",
-      "Señal",
       "Status",
     ]) {
       expect(
@@ -36,6 +35,8 @@ describe("ClientsTable", () => {
     }
     // Removed columns must not appear
     expect(screen.queryByRole("columnheader", { name: "Rol decisor" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Señal" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Origen" })).not.toBeInTheDocument();
   });
 
   it("shows a 'Fallo' badge on failed classification rows", () => {

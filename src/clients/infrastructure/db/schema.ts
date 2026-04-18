@@ -13,7 +13,7 @@ import {
  * LLM-derived classification.
  *
  * Design notes:
- * - The 8 categorical dimensions (§7.1) and `classificationStatus` are stored
+ * - The 6 categorical dimensions (§7.1) and `classificationStatus` are stored
  *   as `text`, NOT `pgEnum`. ARCHITECTURE §13 puts Zod at the classifier
  *   boundary as the enum gatekeeper; duplicating that as a DB-level enum would
  *   add migration friction without adding safety.
@@ -41,9 +41,7 @@ export const clients = pgTable("clients", {
   companySize: text("company_size"),
   mainPainPoint: text("main_pain_point"),
   keyObjection: text("key_objection"),
-  purchaseTimeline: text("purchase_timeline"),
   buyingSignal: text("buying_signal"),
-  decisionMakerRole: text("decision_maker_role"),
   sentiment: text("sentiment"),
 
   // --- LLM qualitative (PRD §7.2) --------------------------------------------

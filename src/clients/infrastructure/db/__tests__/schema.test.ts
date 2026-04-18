@@ -26,9 +26,7 @@ describe("clients Drizzle schema", () => {
       "companySize",
       "mainPainPoint",
       "keyObjection",
-      "purchaseTimeline",
       "buyingSignal",
-      "decisionMakerRole",
       "sentiment",
       // LLM qualitative (§7.2)
       "needsSummary",
@@ -49,7 +47,7 @@ describe("clients Drizzle schema", () => {
     for (const name of expected) {
       expect(cols, `missing column: ${name}`).toHaveProperty(name);
     }
-    // 8 identity/CSV + 8 categorical + 2 qualitative + 7 traceability + 2 timestamps = 27
+    // 8 identity/CSV + 6 categorical + 2 qualitative + 7 traceability + 2 timestamps = 25
     expect(Object.keys(cols)).toHaveLength(expected.length);
   });
 
@@ -93,9 +91,7 @@ describe("clients Drizzle schema", () => {
       "companySize",
       "mainPainPoint",
       "keyObjection",
-      "purchaseTimeline",
       "buyingSignal",
-      "decisionMakerRole",
       "sentiment",
       "needsSummary",
       "nextSteps",

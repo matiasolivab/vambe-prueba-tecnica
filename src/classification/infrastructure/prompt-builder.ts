@@ -30,8 +30,8 @@ export interface FewShotExample {
  *    renders them as `Transcripción / Clasificación esperada` pairs so the
  *    model sees realistic Spanish transcripts before classifying.
  *  - **Rule 5 (literal "no inventes"):** the anti-hallucination section is
- *    hard-coded with the exact escape-hatch wording for `Otros`, `Ninguna`,
- *    `Indefinido` — prudence becomes an obligation, not an option.
+ *    hard-coded with the exact escape-hatch wording for `Otros`, `Ninguna`
+ *    — prudence becomes an obligation, not an option.
  *  - **Rule 10 (CoT):** the system prompt explicitly instructs the model to
  *    emit `reasoning` FIRST before any categorical value.
  *

@@ -21,8 +21,7 @@ import { z } from "zod";
  *     prompt, the schema, and the post-validation never drift.
  *
  *  3. Each dimension that could "not apply" has an explicit escape hatch
- *     (`Otros`, `Ninguna`, `Indefinido`) so the model never needs to
- *     invent a value.
+ *     (`Otros`, `Ninguna`) so the model never needs to invent a value.
  *
  *  4. Word counts for the qualitative fields are instructed via prompt.
  *     A loose `.max()` is now enforced as a safety net (not a strict word

@@ -5,9 +5,7 @@ import type { Classification } from "@/classification/domain/schema";
  *
  * Post-LLM consistency validation. The Zod schema (layer 1) guarantees every
  * field is structurally valid and inside its closed enum — but it cannot catch
- * SEMANTIC inconsistencies across fields (e.g. `buyingSignal = 'Muy Interesado'`
- * paired with `sentiment = 'Negativo'` is syntactically valid but semantically
- * suspicious and likely reflects an LLM misread).
+ * SEMANTIC inconsistencies across fields.
  *
  * Implemented as a DECLARATIVE rule table (`INCONSISTENCY_RULES`) rather than
  * ad-hoc `if` blocks so adding a new rule is a one-line table entry — no touch
@@ -17,6 +15,10 @@ import type { Classification } from "@/classification/domain/schema";
  *
  * The returned `Warning[]` lands in the DB `warnings` jsonb column (task 2.1)
  * and later surfaces in the client-detail modal (task 7.4).
+ *
+ * v3.0.0: buyingSignal removed — the two cross-dim rules (signal_vs_sentiment,
+ * frio_signal_with_positive_sentiment) are dropped. Table is empty until a new
+ * cross-dim inconsistency is identified for leadSource or another dimension.
  */
 
 export type Severity = "warning" | "error";
@@ -42,23 +44,7 @@ export interface InconsistencyRule {
  * logs, the DB `warnings` column, and the UI modal. Never rename a name
  * without a migration plan.
  */
-export const INCONSISTENCY_RULES: readonly InconsistencyRule[] = [
-  {
-    name: "signal_vs_sentiment",
-    severity: "warning",
-    matches: (c) =>
-      c.buyingSignal === "Muy Interesado" && c.sentiment === "Negativo",
-    message: () =>
-      "Señal de compra alta pero sentiment negativo — revisar manualmente.",
-  },
-  {
-    name: "frio_signal_with_positive_sentiment",
-    severity: "warning",
-    matches: (c) => c.buyingSignal === "Frío" && c.sentiment === "Positivo",
-    message: () =>
-      "Señal fría pero sentiment positivo — posible inconsistencia en análisis.",
-  },
-];
+export const INCONSISTENCY_RULES: readonly InconsistencyRule[] = [];
 
 export class ClassificationValidator {
   public constructor(

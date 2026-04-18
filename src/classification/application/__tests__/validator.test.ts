@@ -25,7 +25,7 @@ function makeClassification(
     companySize: "PYME",
     mainPainPoint: "Equipo Saturado",
     keyObjection: "Ninguna",
-    buyingSignal: "Evaluando",
+    leadSource: "No Mencionado",
     sentiment: "Neutro",
     needsSummary:
       "Necesita automatizar respuestas a clientes frecuentes y liberar tiempo del equipo de soporte para casos complejos.",
@@ -40,14 +40,14 @@ describe("ClassificationValidator", () => {
 
     const warnings = validator.validate(makeClassification());
     const warnings2 = validator.validate(
-      makeClassification({ buyingSignal: "Muy Interesado", sentiment: "Negativo" }),
+      makeClassification({ sentiment: "Negativo" }),
     );
 
     expect(warnings).toEqual([]);
     expect(warnings2).toEqual([]);
   });
 
-  it("returns [] for a consistent classification under default rules", () => {
+  it("returns [] for a consistent classification under default rules (empty table)", () => {
     const validator = new ClassificationValidator();
 
     const warnings = validator.validate(makeClassification());
@@ -55,59 +55,15 @@ describe("ClassificationValidator", () => {
     expect(warnings).toEqual([]);
   });
 
-  it("fires signal_vs_sentiment on Muy Interesado + Negativo", () => {
-    const validator = new ClassificationValidator();
-
-    const warnings = validator.validate(
-      makeClassification({
-        buyingSignal: "Muy Interesado",
-        sentiment: "Negativo",
-      }),
-    );
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0].name).toBe("signal_vs_sentiment");
-    expect(warnings[0].severity).toBe("warning");
-    expect(warnings[0].message).toMatch(/sentiment negativo/i);
-  });
-
-  it("does NOT fire signal_vs_sentiment on defensive inversions", () => {
-    const validator = new ClassificationValidator();
-
-    const positive = validator.validate(
-      makeClassification({
-        buyingSignal: "Muy Interesado",
-        sentiment: "Positivo",
-      }),
-    );
-    const tibio = validator.validate(
-      makeClassification({
-        buyingSignal: "Tibio",
-        sentiment: "Negativo",
-      }),
-    );
-
-    const names = [...positive, ...tibio].map((w) => w.name);
-    expect(names).not.toContain("signal_vs_sentiment");
-  });
-
-  it("fires frio_signal_with_positive_sentiment on Frío + Positivo", () => {
-    const validator = new ClassificationValidator();
-
-    const warnings = validator.validate(
-      makeClassification({ buyingSignal: "Frío", sentiment: "Positivo" }),
-    );
-
-    const names = warnings.map((w) => w.name);
-    expect(names).toContain("frio_signal_with_positive_sentiment");
+  it("INCONSISTENCY_RULES is empty — no buyingSignal cross-dim rules in v3.0.0", () => {
+    expect(INCONSISTENCY_RULES).toHaveLength(0);
   });
 
   it("fires multiple rules simultaneously for overlapping inconsistencies", () => {
     const validator = new ClassificationValidator();
 
-    // Both signal_vs_sentiment and frio_signal_with_positive_sentiment
-    // can be triggered via custom rules — here we verify the multi-rule path
-    // with a custom injected pair so the test stays self-contained.
+    // Verify the multi-rule path with a custom injected pair so the test stays
+    // self-contained (default rules table is empty in v3.0.0).
     const always1: InconsistencyRule = {
       name: "rule_a",
       severity: "warning",
@@ -164,7 +120,5 @@ describe("ClassificationValidator", () => {
   it("has stable, unique rule names in the default INCONSISTENCY_RULES table", () => {
     const names = INCONSISTENCY_RULES.map((r) => r.name);
     expect(new Set(names).size).toBe(names.length);
-    // sanity: the required rule is present
-    expect(names).toContain("signal_vs_sentiment");
   });
 });

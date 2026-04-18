@@ -36,7 +36,7 @@ export class DrizzleClientRepository implements ClientRepository {
           companySize: input.companySize,
           mainPainPoint: input.mainPainPoint,
           keyObjection: input.keyObjection,
-          buyingSignal: input.buyingSignal,
+          leadSource: input.leadSource,
           sentiment: input.sentiment,
           needsSummary: input.needsSummary,
           nextSteps: input.nextSteps,

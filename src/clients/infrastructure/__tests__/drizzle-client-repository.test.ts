@@ -304,7 +304,7 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
       companySize: "Mid-market",
       mainPainPoint: "Volumen Repetitivo",
       keyObjection: "Precio",
-      buyingSignal: "Muy Interesado",
+      leadSource: "Publicidad",
       sentiment: "Positivo",
       needsSummary: "Necesita automatizar respuestas de soporte.",
       nextSteps: "Enviar propuesta comercial el lunes.",

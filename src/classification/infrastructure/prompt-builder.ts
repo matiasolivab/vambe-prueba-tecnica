@@ -3,9 +3,7 @@ import {
   COMPANY_SIZES,
   MAIN_PAIN_POINTS,
   KEY_OBJECTIONS,
-  PURCHASE_TIMELINES,
   BUYING_SIGNALS,
-  DECISION_MAKER_ROLES,
   SENTIMENTS,
   type Classification,
 } from "@/classification/domain/schema";
@@ -76,7 +74,7 @@ export class PromptBuilder {
   private formatRole(): string {
     return [
       "Sos un clasificador experto de transcripciones de llamadas de ventas en español para Vambe AI.",
-      "Tu tarea es extraer 10 dimensiones estructuradas por cada transcripción.",
+      "Tu tarea es extraer 8 dimensiones estructuradas por cada transcripción.",
     ].join(" ");
   }
 
@@ -84,7 +82,7 @@ export class PromptBuilder {
     return [
       "Chain-of-Thought (OBLIGATORIO):",
       "- Emitís el campo `reasoning` PRIMERO, antes de cualquier valor categórico.",
-      "- En `reasoning` explicás tu análisis de la transcripción: qué señales encontraste para industria, tamaño, pain point, objeción, timeline, buying signal, rol de decisor y sentiment.",
+      "- En `reasoning` explicás tu análisis de la transcripción: qué señales encontraste para industria, tamaño, pain point, objeción, buying signal y sentiment.",
       "- Recién después asignás los valores. Esto mejora la accuracy en transcripciones ambiguas (~10-15%).",
     ].join("\n");
   }
@@ -95,17 +93,15 @@ export class PromptBuilder {
       `- companySize: [${COMPANY_SIZES.join(", ")}]`,
       `- mainPainPoint: [${MAIN_PAIN_POINTS.join(", ")}]`,
       `- keyObjection: [${KEY_OBJECTIONS.join(", ")}]`,
-      `- purchaseTimeline: [${PURCHASE_TIMELINES.join(", ")}]`,
       `- buyingSignal: [${BUYING_SIGNALS.join(", ")}]`,
-      `- decisionMakerRole: [${DECISION_MAKER_ROLES.join(", ")}]`,
       `- sentiment: [${SENTIMENTS.join(", ")}]`,
     ];
     const qualitativeLines = [
-      "- needsSummary: 100-200 palabras. Resumen de necesidades específicas del cliente.",
-      "- nextSteps: 50-150 palabras. Próximos pasos acordados o sugeridos.",
+      "- needsSummary: 50-100 palabras. Resumen conciso de necesidades específicas del cliente.",
+      "- nextSteps: 25-75 palabras. Próximos pasos acordados o sugeridos.",
     ];
     return [
-      "Dimensiones a extraer (10 en total — 8 categóricas + 2 cualitativas):",
+      "Dimensiones a extraer (8 en total — 6 categóricas + 2 cualitativas):",
       ...categoricalLines,
       ...qualitativeLines,
     ].join("\n");
@@ -116,9 +112,8 @@ export class PromptBuilder {
       "Reglas anti-alucinación (NO NEGOCIABLES):",
       "- Si la transcripción NO menciona explícitamente la industria del cliente, devolvé `Otros`. NO INVENTES.",
       "- Si no hay una objeción clara, devolvé `Ninguna`. NO INVENTES.",
-      "- Si el plazo de compra no es explícito, devolvé `Indefinido`. NO INVENTES.",
       "- NUNCA inventes datos. Si la información no está en la transcripción, usá el valor 'escape hatch' correspondiente.",
-      "- IMPORTANTE: las reglas anti-alucinación son PRUDENCIA, no pesimismo. Si la transcripción deja señal implícita pero clara (p. ej. piloto acordado ⇒ timeline corto), aplicá las reglas por dimensión de más abajo; no caigas por defecto al escape hatch cuando la señal existe.",
+      "- IMPORTANTE: las reglas anti-alucinación son PRUDENCIA, no pesimismo. Si la transcripción deja señal implícita pero clara, aplicá las reglas por dimensión de más abajo; no caigas por defecto al escape hatch cuando la señal existe.",
     ].join("\n");
   }
 
@@ -126,10 +121,9 @@ export class PromptBuilder {
    * Per-dimension discrimination rules. Drafted after measuring the baseline
    * prompt against the ground-truth fixture (task 4.2) — the rules below
    * target the specific error patterns diagnosed there (Mid-market
-   * under-classification, Manager↔Fundador confusion, closure-vs-exploration
-   * inversion on buyingSignal, symptom-vs-cause confusion on mainPainPoint,
-   * positivity bias on sentiment, and over-triggering of `Indefinido` on
-   * purchaseTimeline). See `docs/ARCHITECTURE.md` §13 rule 13: bump
+   * under-classification, closure-vs-exploration inversion on buyingSignal,
+   * symptom-vs-cause confusion on mainPainPoint, and positivity bias on
+   * sentiment). See `docs/ARCHITECTURE.md` §13 rule 13: bump
    * `CLASSIFIER_VERSION` whenever this section changes.
    */
   private formatPerDimensionRules(): string {
@@ -148,13 +142,6 @@ export class PromptBuilder {
       "- \"educación\", \"universidad\", \"institución educativa\", \"becas\" → `Educación`.",
       "- Solo usá `Otros` si el sector NO encaja en ninguna categoría (p. ej. restaurantes, catering, turismo, ONG).",
       "",
-      "purchaseTimeline (distinguí interés activo de interés exploratorio):",
-      "- `Urgente (<2 sem)`: lenguaje de inmediatez (\"cuanto antes\", \"urgente\", \"ya mismo\", \"lo necesitamos esta semana\").",
-      "- `Corto (2-8 sem)`: la reunión cierra con intención ACTIVA de implementar. Señales concretas: \"estamos interesados en\", \"nos interesa [la solución/implementar]\", \"nos interesa una solución que\", \"creemos que podría ser LA solución que necesitamos\", pedido explícito de demo/piloto/cotización, \"queremos implementar\". El interés se verbaliza como intención propia, no como descripción de la plataforma.",
-      "- `Largo (2+ meses)`: mención explícita de trimestres, próximo año, proyectos largos, presupuestos anuales.",
-      "- `Indefinido`: DEFAULT cuando la conversación es exploratoria/informativa. Aplica cuando el cliente describe la propuesta de valor de Vambe en tercera persona sin comprometerse (\"nos llamó la atención su capacidad para X\", \"consideramos fundamental Y\", \"nos interesa la idea de Z\") y NO hay pedido concreto de próximo paso. Cuando el cliente enumera virtudes de la plataforma sin decir \"nos interesa implementar\" / \"estamos interesados en\" ⇒ Indefinido.",
-      "- Heurística discriminante: \"nos interesa [la solución/implementar/esta tecnología]\" = Corto. \"nos llamó la atención\" / \"nos interesa la idea\" / \"consideramos que podría\" = Indefinido.",
-      "",
       "companySize:",
       "- `Startup`: menciona \"startup\" o equipo pequeño (<10) operando un producto único emergente.",
       "- `PYME`: operación local/regional, dueño presente en conversación, volumen moderado (<150 consultas/sem o <100/día en picos).",
@@ -162,26 +149,12 @@ export class PromptBuilder {
       "- `Enterprise`: múltiples divisiones, operación continental/global, 1000+ interacciones/semana, mención de board corporativo.",
       "- Heurística práctica: si mencionan expansión internacional, operaciones internacionales, clientes en múltiples países, subí a Mid-market aunque el volumen base sea moderado.",
       "",
-      "buyingSignal (usá la MISMA heurística que purchaseTimeline):",
+      "buyingSignal (discriminá interés activo de interés exploratorio):",
       "- `Muy Interesado`: la conversación termina con intención ACTIVA. Señales: \"estamos interesados en\", \"nos interesa [la solución/implementar]\", \"valoramos mucho\", \"gracias por la reunión\", pedido explícito de demo/piloto/cotización, \"creemos que podría ser LA solución que necesitamos\", \"queremos implementar\". El cliente SE COMPROMETE con la propuesta.",
       "- `Evaluando`: el cliente DESCRIBE la propuesta de valor sin comprometerse (\"nos llamó la atención su capacidad para X\", \"consideramos fundamental Y\", \"nos interesa la idea\", \"nos pareció una opción interesante\", \"nos gustaría explorar cómo\"). Tono descriptivo/analítico. El interés se formula en tercera persona sobre la plataforma, no como intención propia.",
       "- `Tibio`: interés leve, dudas sin resolver, preguntas genéricas sin caso de uso definido.",
       "- `Frío`: desinterés explícito, abandono, objeción bloqueante no resuelta.",
       "- DISCRIMINADOR CLAVE: \"nos interesa [la solución/implementar/esta herramienta]\" = Muy Interesado. \"nos llamó la atención\" / \"nos interesa la idea\" / \"consideramos que podría\" / \"nos pareció interesante\" = Evaluando. La diferencia es sutil: compromiso propio vs descripción del valor.",
-      "",
-      "decisionMakerRole (el TIPO de empresa manda: en firmas profesionales boutique el dueño/partner es el default):",
-      "- `CEO/Fundador`: aplica en TODOS estos casos:",
-      "  (a) Verbos posesivos directos: \"dirijo\", \"mi empresa\", \"fundé\", \"soy dueño\".",
-      "  (b) Startup o PYME con lenguaje de primera persona hablando de la empresa como un todo (\"nuestra clínica ha crecido\", \"nuestra tienda\", \"nuestra firma de consultoría\", \"nuestra empresa de bienes raíces\").",
-      "  (c) Firmas profesionales boutique/medianas con voz institucional (consultoras, inmobiliarias, firmas de arquitectura, firmas de abogados, clínicas, estudios creativos) donde el interlocutor habla de \"nuestra firma/consultora/estudio\" como un todo ⇒ es partner/socio/director ⇒ CEO/Fundador. Esto aplica AUNQUE sea Mid-market por volumen si la estructura es de firma profesional.",
-      "- `Manager de Área`: aplica SOLO cuando hay señales claras de mando intermedio en una corporación más grande:",
-      "  (a) El interlocutor distingue \"mi área/equipo/departamento\" como un subconjunto dentro de una organización mayor.",
-      "  (b) Menciona múltiples áreas o jerarquía corporativa explícita.",
-      "  (c) Lenguaje de ejecución operativa dentro de Mid-market sin voz de dueño de la firma.",
-      "  Ejemplo: \"nuestro equipo actual se enfrenta a... en el área de atención al cliente\" dentro de una empresa grande con operaciones internacionales ⇒ Manager.",
-      "- `Comité`: decisión colectiva explícita (\"el comité\", \"vamos a presentar al board\", \"evaluaremos internamente entre varias áreas\").",
-      "- `Analista/Coordinador`: rol operativo técnico de primera línea (\"me encargo del soporte\", \"en mi área de sistemas\", \"soy responsable de atención al cliente\"). También aplica a roles internos de coordinación en instituciones (educación, admisiones) donde el interlocutor menciona que el tema vino de una \"reunión interna\" entre pares.",
-      "- REGLA DE ORO: si la empresa es una firma profesional boutique (consultora, inmobiliaria, arquitectura, abogados, clínica PYME) y el interlocutor habla en primera persona como representante de la firma, es CEO/Fundador por default. Solo bajalo a Manager si hay señal CORPORATIVA explícita (múltiples áreas, dirección separada, mando intermedio).",
       "",
       "mainPainPoint (`Volumen Repetitivo` es el DEFAULT fuerte — solo desplazalo con señales INEQUÍVOCAS):",
       "- `Volumen Repetitivo`: el problema ES la repetición misma. Cubre TODOS estos casos: \"consultas repetitivas\", \"preguntas frecuentes\", \"mismas preguntas\", volumen alto con temas homogéneos. DEFAULT cuando hay volumen elevado sin las señales específicas de las otras causas. Ante duda entre Volumen Repetitivo y otra causa, gana Volumen Repetitivo.",
@@ -224,7 +197,7 @@ export class PromptBuilder {
     return [
       "Formato de salida:",
       "- Emitís un único objeto JSON que cumple el schema provisto por Structured Outputs.",
-      "- `reasoning` va PRIMERO. Después, las 8 dimensiones categóricas con valores EXACTOS de las listas permitidas. Al final, `needsSummary` y `nextSteps` respetando el rango de palabras.",
+      "- `reasoning` va PRIMERO. Después, las 6 dimensiones categóricas con valores EXACTOS de las listas permitidas. Al final, `needsSummary` (50–100 palabras) y `nextSteps` (25–75 palabras).",
     ].join("\n");
   }
 }

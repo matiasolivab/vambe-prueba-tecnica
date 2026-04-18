@@ -8,9 +8,7 @@ import {
   COMPANY_SIZES,
   MAIN_PAIN_POINTS,
   KEY_OBJECTIONS,
-  PURCHASE_TIMELINES,
   BUYING_SIGNALS,
-  DECISION_MAKER_ROLES,
   SENTIMENTS,
   type Classification,
 } from "@/classification/domain/schema";
@@ -32,14 +30,12 @@ const fewShot1: FewShotExample = {
     companySize: "PYME",
     mainPainPoint: "Integración Técnica",
     keyObjection: "Integración",
-    purchaseTimeline: "Corto (2-8 sem)",
     buyingSignal: "Evaluando",
-    decisionMakerRole: "Manager de Área",
     sentiment: "Neutro",
     needsSummary:
       "El cliente necesita integrar su sistema de backend con la plataforma de Vambe mediante API REST y desea mantener compatibilidad con su stack actual.",
     nextSteps:
-      "Enviar documentación técnica de la API y agendar una llamada técnica con el equipo de ingeniería del cliente la próxima semana.",
+      "Enviar documentación técnica de la API y agendar una llamada técnica con el equipo de ingeniería.",
   } satisfies Classification,
 };
 
@@ -53,14 +49,12 @@ const fewShot2: FewShotExample = {
     companySize: "Startup",
     mainPainPoint: "Volumen Repetitivo",
     keyObjection: "Ninguna",
-    purchaseTimeline: "Urgente (<2 sem)",
     buyingSignal: "Muy Interesado",
-    decisionMakerRole: "CEO/Fundador",
     sentiment: "Positivo",
     needsSummary:
       "El cliente opera un e-commerce con 500 consultas diarias repetitivas y requiere automatización inmediata para liberar al equipo de soporte.",
     nextSteps:
-      "Agendar demo en los próximos cinco días hábiles y preparar propuesta comercial personalizada al volumen reportado.",
+      "Agendar demo en los próximos cinco días hábiles y preparar propuesta comercial al volumen reportado.",
   } satisfies Classification,
 };
 
@@ -89,7 +83,7 @@ describe("PromptBuilder", () => {
       expect(mentionsOrder).toBe(true);
     });
 
-    it("lists all 10 dimension field names", () => {
+    it("lists all 8 dimension field names", () => {
       const builder = new PromptBuilder();
 
       const prompt = builder.buildSystemPrompt();
@@ -99,9 +93,7 @@ describe("PromptBuilder", () => {
         "companySize",
         "mainPainPoint",
         "keyObjection",
-        "purchaseTimeline",
         "buyingSignal",
-        "decisionMakerRole",
         "sentiment",
         "needsSummary",
         "nextSteps",
@@ -111,6 +103,10 @@ describe("PromptBuilder", () => {
           field,
         );
       }
+
+      // Removed dimensions must not appear
+      expect(prompt).not.toContain("purchaseTimeline");
+      expect(prompt).not.toContain("decisionMakerRole");
     });
 
     it("propagates every enum value from domain/schema.ts into the prompt", () => {
@@ -123,9 +119,7 @@ describe("PromptBuilder", () => {
         { label: "COMPANY_SIZES", values: COMPANY_SIZES },
         { label: "MAIN_PAIN_POINTS", values: MAIN_PAIN_POINTS },
         { label: "KEY_OBJECTIONS", values: KEY_OBJECTIONS },
-        { label: "PURCHASE_TIMELINES", values: PURCHASE_TIMELINES },
         { label: "BUYING_SIGNALS", values: BUYING_SIGNALS },
-        { label: "DECISION_MAKER_ROLES", values: DECISION_MAKER_ROLES },
         { label: "SENTIMENTS", values: SENTIMENTS },
       ];
 
@@ -146,19 +140,29 @@ describe("PromptBuilder", () => {
 
       expect(prompt).toContain("Otros");
       expect(prompt).toContain("Ninguna");
-      expect(prompt).toContain("Indefinido");
       expect(prompt).toContain("NO INVENTES");
+      // purchaseTimeline Indefinido rule must be gone
+      expect(prompt).not.toContain("Indefinido");
     });
 
-    it("states word-count guidance for needsSummary (100-200) and nextSteps (50-150)", () => {
+    it("states updated word-count guidance for needsSummary (50-100) and nextSteps (25-75)", () => {
       const builder = new PromptBuilder();
 
       const prompt = builder.buildSystemPrompt();
 
-      expect(prompt).toContain("100");
-      expect(prompt).toContain("200");
       expect(prompt).toContain("50");
-      expect(prompt).toContain("150");
+      expect(prompt).toContain("100");
+      expect(prompt).toContain("25");
+      expect(prompt).toContain("75");
+    });
+
+    it("prompt describes 8 total dimensions — 6 categorical + 2 qualitative", () => {
+      const builder = new PromptBuilder();
+
+      const prompt = builder.buildSystemPrompt();
+
+      expect(prompt).toContain("8");
+      expect(prompt).toContain("6");
     });
 
     it("omits the few-shot section when no examples are provided", () => {

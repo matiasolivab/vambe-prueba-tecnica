@@ -61,6 +61,24 @@ export interface SellerConversion {
   readonly closeRate: number;
 }
 
+/** One entry of the pain-point frequency distribution. */
+export interface PainPointCount {
+  readonly painPoint: string;
+  readonly count: number;
+}
+
+/** One entry of the company-size frequency distribution. */
+export interface CompanySizeCount {
+  readonly companySize: string;
+  readonly count: number;
+}
+
+/** One entry of the top-industries list (excludes "Otros"). */
+export interface IndustryCount {
+  readonly industry: string;
+  readonly count: number;
+}
+
 /** One cell of the sellers × industries crosstab. */
 export interface SellerByIndustryCell {
   readonly seller: string;
@@ -176,6 +194,64 @@ export class MetricsCalculator {
         closed: r.closed,
         closeRate: safeRate(r.closed, r.total),
       }));
+  }
+
+  public async painPointCounts(
+    filters?: MetricFilters,
+  ): Promise<readonly PainPointCount[]> {
+    const where = this.buildWhereClassified(filters, clients.mainPainPoint);
+    const rows = await this.db
+      .select({
+        value: clients.mainPainPoint,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(clients)
+      .where(where)
+      .groupBy(clients.mainPainPoint)
+      .orderBy(desc(sql`count(*)`), asc(clients.mainPainPoint));
+    return rows
+      .filter((r): r is { value: string; count: number } => r.value !== null)
+      .map((r) => ({ painPoint: r.value, count: r.count }));
+  }
+
+  public async companySizeDistribution(
+    filters?: MetricFilters,
+  ): Promise<readonly CompanySizeCount[]> {
+    const where = this.buildWhereClassified(filters, clients.companySize);
+    const rows = await this.db
+      .select({
+        value: clients.companySize,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(clients)
+      .where(where)
+      .groupBy(clients.companySize)
+      .orderBy(desc(sql`count(*)`), asc(clients.companySize));
+    return rows
+      .filter((r): r is { value: string; count: number } => r.value !== null)
+      .map((r) => ({ companySize: r.value, count: r.count }));
+  }
+
+  public async topIndustries(
+    filters?: MetricFilters,
+    limit: number = 2,
+  ): Promise<readonly IndustryCount[]> {
+    const where = this.buildWhereClassified(filters, clients.industry);
+    const rows = await this.db
+      .select({
+        value: clients.industry,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(clients)
+      .where(where)
+      .groupBy(clients.industry)
+      .orderBy(desc(sql`count(*)`), asc(clients.industry));
+    return rows
+      .filter((r): r is { value: string; count: number } =>
+        r.value !== null && r.value !== "Otros",
+      )
+      .slice(0, limit)
+      .map((r) => ({ industry: r.value, count: r.count }));
   }
 
   // --- private helpers -----------------------------------------------------

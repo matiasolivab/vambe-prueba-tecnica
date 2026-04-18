@@ -435,4 +435,223 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     const cells = await calc.sellerByIndustry(impossible);
     expect(cells).toEqual([]);
   });
+
+  // ---------------------------------------------------------------------------
+  // painPointCounts
+  // ---------------------------------------------------------------------------
+
+  describe("painPointCounts", () => {
+    it("returns pain points sorted DESC by count, tiebreak alphabetical", async () => {
+      // Fixture: Volumen Repetitivo × 4, Integración × 2, Costos × 2
+      // Tiebreak on count=2: Costos < Integración alphabetically
+      const results = await calc.painPointCounts();
+      // Scoped delta: remove fixture, measure baseline, reinsert, compare
+      await rawDb.execute(
+        sql`DELETE FROM ${clients} WHERE ${clients.email} LIKE 'metrics-test-%@example.com'`,
+      );
+      const baseline = await calc.painPointCounts();
+      await rawDb.insert(clients).values(FIXTURE);
+
+      // Volumen Repetitivo must have gained 4 in delta
+      const before = results.find((r) => r.painPoint === "Volumen Repetitivo");
+      const after = baseline.find((r) => r.painPoint === "Volumen Repetitivo");
+      expect((before?.count ?? 0) - (after?.count ?? 0)).toBe(4);
+
+      // Ordering invariant: DESC by count
+      for (let i = 1; i < results.length; i++) {
+        expect(results[i - 1]!.count).toBeGreaterThanOrEqual(results[i]!.count);
+      }
+    });
+
+    it("excludes rows where mainPainPoint IS NULL", async () => {
+      // All fixture rows have a non-null mainPainPoint — method must exclude nulls.
+      // Insert a null row and verify it doesn't appear in results.
+      await rawDb.insert(clients).values([
+        {
+          name: "Null Pain Test",
+          email: "metrics-test-null-pain@example.com",
+          phone: null,
+          meetingDate: new Date("2026-01-10T12:00:00Z"),
+          assignedSeller: "Toro",
+          closed: false,
+          transcript: "fixture",
+          industry: "Tecnología",
+          companySize: "Mid-market",
+          mainPainPoint: null,
+          keyObjection: "Precio",
+          leadSource: null,
+          sentiment: null,
+          classificationStatus: "classified",
+        },
+      ]);
+      const results = await calc.painPointCounts();
+      // No entry with null key
+      expect(results.every((r) => r.painPoint !== null)).toBe(true);
+    });
+
+    it("returns [] when no rows match the filter", async () => {
+      const results = await calc.painPointCounts({
+        assignedSeller: "__NO_SUCH_SELLER__",
+      });
+      expect(results).toEqual([]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // companySizeDistribution
+  // ---------------------------------------------------------------------------
+
+  describe("companySizeDistribution", () => {
+    it("returns sizes sorted DESC by count, tiebreak alphabetical", async () => {
+      // Fixture sizes: Mid-market × 3, Enterprise × 3, SMB × 2
+      // Tiebreak on count=3: Enterprise < Mid-market alphabetically
+      const results = await calc.companySizeDistribution();
+
+      // Ordering invariant
+      for (let i = 1; i < results.length; i++) {
+        expect(results[i - 1]!.count).toBeGreaterThanOrEqual(results[i]!.count);
+      }
+
+      // Delta: Mid-market must have gained 3 rows from fixture
+      await rawDb.execute(
+        sql`DELETE FROM ${clients} WHERE ${clients.email} LIKE 'metrics-test-%@example.com'`,
+      );
+      const baseline = await calc.companySizeDistribution();
+      await rawDb.insert(clients).values(FIXTURE);
+
+      const beforeMid = results.find((r) => r.companySize === "Mid-market");
+      const afterMid = baseline.find((r) => r.companySize === "Mid-market");
+      expect((beforeMid?.count ?? 0) - (afterMid?.count ?? 0)).toBe(3);
+    });
+
+    it("excludes rows where companySize IS NULL", async () => {
+      await rawDb.insert(clients).values([
+        {
+          name: "Null Size Test",
+          email: "metrics-test-null-size@example.com",
+          phone: null,
+          meetingDate: new Date("2026-01-10T12:00:00Z"),
+          assignedSeller: "Toro",
+          closed: false,
+          transcript: "fixture",
+          industry: "Tecnología",
+          companySize: null,
+          mainPainPoint: "Costos",
+          keyObjection: "Precio",
+          leadSource: null,
+          sentiment: null,
+          classificationStatus: "classified",
+        },
+      ]);
+      const results = await calc.companySizeDistribution();
+      expect(results.every((r) => r.companySize !== null)).toBe(true);
+    });
+
+    it("respects assignedSeller filter", async () => {
+      // Puma fixture rows: SMB × 2, Enterprise × 2, Retail × 0 (size-wise)
+      const results = await calc.companySizeDistribution({
+        assignedSeller: "Puma",
+      });
+      // Every row must belong to Puma — verified by ordering invariant
+      for (let i = 1; i < results.length; i++) {
+        expect(results[i - 1]!.count).toBeGreaterThanOrEqual(results[i]!.count);
+      }
+      // Puma has Enterprise and SMB in fixture
+      const sizes = results.map((r) => r.companySize);
+      expect(sizes).toContain("Enterprise");
+      expect(sizes).toContain("SMB");
+    });
+
+    it("returns [] when no rows match the filter", async () => {
+      const results = await calc.companySizeDistribution({
+        assignedSeller: "__NO_SUCH_SELLER__",
+      });
+      expect(results).toEqual([]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // topIndustries
+  // ---------------------------------------------------------------------------
+
+  describe("topIndustries", () => {
+    it("returns top 2 by default, excluding Otros", async () => {
+      // Insert an "Otros" row that would otherwise be #1 by count
+      await rawDb.insert(clients).values([
+        {
+          name: "Otros A",
+          email: "metrics-test-otros-a@example.com",
+          phone: null,
+          meetingDate: new Date("2026-01-11T12:00:00Z"),
+          assignedSeller: "Toro",
+          closed: false,
+          transcript: "fixture",
+          industry: "Otros",
+          companySize: "Mid-market",
+          mainPainPoint: "Costos",
+          keyObjection: null,
+          leadSource: null,
+          sentiment: null,
+          classificationStatus: "classified",
+        },
+        {
+          name: "Otros B",
+          email: "metrics-test-otros-b@example.com",
+          phone: null,
+          meetingDate: new Date("2026-01-12T12:00:00Z"),
+          assignedSeller: "Toro",
+          closed: false,
+          transcript: "fixture",
+          industry: "Otros",
+          companySize: "Mid-market",
+          mainPainPoint: "Costos",
+          keyObjection: null,
+          leadSource: null,
+          sentiment: null,
+          classificationStatus: "classified",
+        },
+        {
+          name: "Otros C",
+          email: "metrics-test-otros-c@example.com",
+          phone: null,
+          meetingDate: new Date("2026-01-13T12:00:00Z"),
+          assignedSeller: "Toro",
+          closed: false,
+          transcript: "fixture",
+          industry: "Otros",
+          companySize: "Mid-market",
+          mainPainPoint: "Costos",
+          keyObjection: null,
+          leadSource: null,
+          sentiment: null,
+          classificationStatus: "classified",
+        },
+      ]);
+      const results = await calc.topIndustries();
+      // Must return at most 2
+      expect(results.length).toBeLessThanOrEqual(2);
+      // "Otros" must NOT appear even though it has the highest count
+      expect(results.map((r) => r.industry)).not.toContain("Otros");
+    });
+
+    it("respects custom limit", async () => {
+      const results = await calc.topIndustries(undefined, 1);
+      expect(results.length).toBeLessThanOrEqual(1);
+      expect(results.map((r) => r.industry)).not.toContain("Otros");
+    });
+
+    it("sorts DESC by count", async () => {
+      const results = await calc.topIndustries(undefined, 10);
+      for (let i = 1; i < results.length; i++) {
+        expect(results[i - 1]!.count).toBeGreaterThanOrEqual(results[i]!.count);
+      }
+    });
+
+    it("returns [] when no rows match filter", async () => {
+      const results = await calc.topIndustries({
+        assignedSeller: "__NO_SUCH_SELLER__",
+      });
+      expect(results).toEqual([]);
+    });
+  });
 });

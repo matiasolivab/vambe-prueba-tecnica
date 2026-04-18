@@ -5,6 +5,8 @@ import {
   BarChart,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
+  type TooltipProps,
   XAxis,
   YAxis,
 } from "recharts";
@@ -62,6 +64,10 @@ export function SellersConversionBarChart({
             axisLine={false}
             tick={{ fill: "currentColor", fontSize: 12 }}
           />
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ fill: "currentColor", opacity: 0.04 }}
+          />
           <Bar stackId="conv" dataKey="closedClients" fill={COLOR_CLOSED} />
           <Bar
             stackId="conv"
@@ -72,5 +78,36 @@ export function SellersConversionBarChart({
         </BarChart>
       </ResponsiveContainer>
     </section>
+  );
+}
+
+/**
+ * Tooltip contents — rendered by Recharts on bar hover and exported for
+ * direct testing (bypasses JSDOM mouseMove flakiness on BarChart).
+ * Format: seller / "{total} reuniones · {closed} cerradas" / "{pct}% close rate".
+ */
+export function CustomTooltip({
+  active,
+  payload,
+}: TooltipProps<number, string>): React.ReactElement | null {
+  if (!active || !payload || payload.length === 0) return null;
+  const row = payload[0]?.payload as SellerConversion | undefined;
+  if (!row) return null;
+  const ratePct = Math.round(row.closeRate * 100);
+  return (
+    <div
+      className="rounded-md border px-3 py-2 text-xs shadow-sm"
+      style={{
+        background: "var(--popover)",
+        borderColor: "var(--border)",
+        color: "var(--popover-foreground)",
+      }}
+    >
+      <div className="text-sm font-medium">{row.seller}</div>
+      <div className="mt-0.5 text-muted-foreground">
+        {row.totalClients} reuniones · {row.closedClients} cerradas
+      </div>
+      <div className="mt-0.5">{ratePct}% close rate</div>
+    </div>
   );
 }

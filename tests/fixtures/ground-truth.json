@@ -2,7 +2,7 @@
   "$schema": "./ground-truth.schema.json",
   "version": "3.0.0",
   "createdAt": "2026-04-18",
-  "note": "v3.0.0 (2026-04-18): removed buyingSignal and added leadSource (CLASSIFIER_VERSION 3.0.0 — schema shape change). Adversarial samples (10-15) now discriminate on sentiment only (buyingSignal removed); future work: add leadSource-discrimination adversarial subset. leadSource distribution: {No Mencionado: 5, Recomendación: 4, Búsqueda Online: 2, Otros: 4, Outbound: 1, Publicidad: 0}/16. v2.0.0 (2026-04-18): removed purchaseTimeline and decisionMakerRole fields (CLASSIFIER_VERSION 2.0.0 — schema shape change). Trimmed needsSummary and nextSteps to match new Zod bounds (max 600/450 chars). v1.2.0 history preserved: 6 synthetic adversarial samples (indexes 10-15) force discrimination on sentiment {11 Neutro, 4 Positivo, 1 Negativo}/16.",
+  "note": "v3.0.0 (2026-04-18): removed buyingSignal and added leadSource (CLASSIFIER_VERSION 3.0.0 — schema shape change). Adversarial samples (10-15) now discriminate on sentiment only (buyingSignal removed); future work: add leadSource-discrimination adversarial subset. leadSource distribution: {No Mencionado: 4, Recomendación: 5, Búsqueda Online: 2, Otros: 4, Outbound: 1, Publicidad: 0}/16. v2.0.0 (2026-04-18): removed purchaseTimeline and decisionMakerRole fields (CLASSIFIER_VERSION 2.0.0 — schema shape change). Trimmed needsSummary and nextSteps to match new Zod bounds (max 600/450 chars). v1.2.0 history preserved: 6 synthetic adversarial samples (indexes 10-15) force discrimination on sentiment {11 Neutro, 4 Positivo, 1 Negativo}/16.",
   "samples": [
     {
       "email": "c.perez@example.com",

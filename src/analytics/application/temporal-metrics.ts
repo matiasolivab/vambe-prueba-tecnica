@@ -26,6 +26,16 @@ export interface MonthlyClientsPoint {
   readonly open: number;
 }
 
+/** Month-over-month delta for the Total clients KPI. */
+export interface ClientCountMoM {
+  readonly current: number;
+  readonly previous: number;
+  /** `null` when previous is 0 (no base to divide) or dataset is empty. */
+  readonly deltaPct: number | null;
+  /** `"YYYY-MM"` of the anchor month; `""` when dataset is empty. */
+  readonly referenceYearMonth: string;
+}
+
 export class TemporalMetrics {
   public constructor(private readonly db: NeonHttpDatabase) {}
 
@@ -46,6 +56,31 @@ export class TemporalMetrics {
     const rows = await this.fetchMonthlyBuckets(where, anchor);
     const byMonth = new Map(rows.map((r) => [r.yearMonth, r] as const));
     return expandToTwelveMonths(anchor, byMonth);
+  }
+
+  /**
+   * Counts clients in the anchor month and the immediately preceding one,
+   * honouring every filter (including `filters.closed`). Anchor = month of
+   * MAX(meeting_date) for the filtered dataset.
+   */
+  public async clientCountMoM(
+    filters?: MetricFilters,
+  ): Promise<ClientCountMoM> {
+    const where = this.buildWhere(filters);
+    const anchor = await this.fetchAnchorYearMonth(where);
+    if (!anchor) {
+      return { current: 0, previous: 0, deltaPct: null, referenceYearMonth: "" };
+    }
+    const { current, previous } = await this.fetchCurrentAndPreviousCounts(
+      where,
+      anchor,
+    );
+    return {
+      current,
+      previous,
+      deltaPct: computeDeltaPct(current, previous),
+      referenceYearMonth: anchor,
+    };
   }
 
   // --- private helpers -----------------------------------------------------
@@ -90,6 +125,27 @@ export class TemporalMetrics {
     return row?.ym ?? null;
   }
 
+  private async fetchCurrentAndPreviousCounts(
+    where: SQL | undefined,
+    anchor: string,
+  ): Promise<{ current: number; previous: number }> {
+    const anchorDate = `${anchor}-01`;
+    const [row] = await this.db
+      .select({
+        current: sql<number>`count(*) filter (
+          where date_trunc('month', ${clients.meetingDate})
+              = date_trunc('month', ${anchorDate}::date)
+        )::int`,
+        previous: sql<number>`count(*) filter (
+          where date_trunc('month', ${clients.meetingDate})
+              = date_trunc('month', ${anchorDate}::date) - interval '1 month'
+        )::int`,
+      })
+      .from(clients)
+      .where(where);
+    return { current: row?.current ?? 0, previous: row?.previous ?? 0 };
+  }
+
   private async fetchMonthlyBuckets(
     where: SQL | undefined,
     anchor: string,
@@ -119,6 +175,11 @@ export class TemporalMetrics {
       .groupBy(sql`1`)
       .orderBy(asc(sql`1`));
   }
+}
+
+function computeDeltaPct(current: number, previous: number): number | null {
+  if (previous === 0) return null;
+  return Math.round(((current - previous) / previous) * 1000) / 10;
 }
 
 function expandToTwelveMonths(

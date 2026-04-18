@@ -31,41 +31,41 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
 
   if (initialClients.length === 0) {
     return (
-      <p className="py-10 text-center text-zinc-500">Sin clientes</p>
+      <p className="py-10 text-center text-muted-foreground">Sin clientes</p>
     );
   }
 
   return (
     <>
-      <div className="rounded-lg bg-zinc-900 ring-1 ring-zinc-800 overflow-x-auto">
-        <Table className="text-zinc-300">
+      <div className="rounded-xl bg-card ring-1 ring-border overflow-x-auto">
+        <Table>
           <TableHeader>
-            <TableRow className="border-zinc-800 hover:bg-transparent">
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Cliente
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Vendedor
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Industria
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Tamaño
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Rol decisor
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Estado
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Sentiment
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Señal
               </TableHead>
-              <TableHead className="text-zinc-400 uppercase text-xs tracking-wide">
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Status
               </TableHead>
             </TableRow>
@@ -84,14 +84,19 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                   }
                 }}
                 className={cn(
-                  "border-zinc-800 cursor-pointer hover:bg-zinc-800/60",
-                  c.classificationStatus === "failed" && "text-zinc-500",
+                  "border-border cursor-pointer hover:bg-muted/50",
+                  c.classificationStatus === "failed" &&
+                    "text-muted-foreground",
                 )}
               >
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-medium text-zinc-100">{c.name}</span>
-                    <span className="text-xs text-zinc-500">{c.email}</span>
+                    <span className="font-medium text-foreground">
+                      {c.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {c.email}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>{c.assignedSeller}</TableCell>
@@ -122,11 +127,11 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
 
 function ClosedBadge({ closed }: { closed: boolean }) {
   return closed ? (
-    <Badge className="bg-cyan-400/10 text-cyan-400 border border-cyan-400/30">
+    <Badge className="bg-cyan-500/10 text-cyan-700 border border-cyan-500/30">
       Cerrado
     </Badge>
   ) : (
-    <Badge className="bg-zinc-800 text-zinc-300 border border-zinc-700">
+    <Badge className="bg-muted text-muted-foreground border border-border">
       Abierto
     </Badge>
   );
@@ -136,17 +141,17 @@ function StatusBadges({ client }: { client: Client }) {
   return (
     <div className="flex flex-wrap gap-1">
       {client.classificationStatus === "failed" ? (
-        <Badge className="bg-red-400/10 text-red-400 border border-red-400/30">
+        <Badge className="bg-red-500/10 text-red-700 border border-red-500/30">
           Fallo
         </Badge>
       ) : null}
       {client.truncated ? (
-        <Badge className="bg-amber-400/10 text-amber-400 border border-amber-400/30">
+        <Badge className="bg-amber-500/10 text-amber-700 border border-amber-500/30">
           Truncado
         </Badge>
       ) : null}
       {client.classificationStatus !== "failed" && !client.truncated ? (
-        <span className="text-xs text-zinc-500">OK</span>
+        <span className="text-xs text-muted-foreground">OK</span>
       ) : null}
     </div>
   );

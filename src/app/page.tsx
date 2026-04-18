@@ -1,104 +1,172 @@
-import { createMetricsCalculator } from "@/analytics/application/metrics-calculator";
-import { CloseAnalysis } from "@/analytics/ui/close-analysis";
-import { KpiTile } from "@/analytics/ui/kpi-tile";
-import { ObjectionsSection } from "@/analytics/ui/objections-section";
-import { SellersSection } from "@/analytics/ui/sellers-section";
-import { FiltersBar } from "@/app/ui/filters-bar";
-import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
-import { ClientsSection } from "@/clients/ui/clients-section";
-import UploadButton from "@/ingestion/ui/upload-button";
-import {
-  metricFiltersOf,
-  parseFiltersFromSearchParams,
-} from "@/shared/filters/parse-filters";
+import Link from "next/link";
 
-// KPIs must reflect live Neon data on every request — no ISR, no static cache.
-export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Vambe — Análisis de ventas con IA",
+  description:
+    "Subí tus transcripciones de llamadas y obtené métricas accionables: tasa de cierre, mejor vendedor, objeciones frecuentes y pain points.",
+};
 
-/**
- * Next 16 passes `searchParams` as a Promise — awaiting it is mandatory
- * (see `node_modules/next/dist/docs/01-app/01-getting-started/03-layouts-and-pages.md`).
- */
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const sp = await searchParams;
-  const filters = parseFiltersFromSearchParams(sp);
-  const metricFilters = metricFiltersOf(filters);
-
-  const calc = createMetricsCalculator();
-  const repo = createDrizzleClientRepository();
-
-  const [kpis, sellers] = await Promise.all([
-    calc.kpis(metricFilters),
-    repo.distinctSellers(),
-  ]);
-
-  const closeRatePct = `${Math.round(kpis.closeRate * 100)}%`;
-  const topSellerValue = kpis.topSeller?.name ?? "—";
-  const topSellerCaption = kpis.topSeller
-    ? `Tasa de cierre: ${Math.round(kpis.topSeller.closeRate * 100)}%`
-    : undefined;
-  const topPainPointValue = kpis.topPainPoint?.value ?? "—";
-  const topPainPointCaption = kpis.topPainPoint
-    ? `${kpis.topPainPoint.count} menciones`
-    : undefined;
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <header className="mb-10 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              Vambe · Dashboard
-            </h1>
-            <p className="text-zinc-400 mt-2">
-              Categorización automática de transcripciones de ventas
-            </p>
-          </div>
-          <UploadButton />
-        </header>
+    <main className="relative isolate min-h-screen overflow-hidden bg-background">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 -left-32 h-[32rem] w-[32rem] rounded-full bg-gradient-to-br from-cyan-300/40 to-cyan-500/5 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 right-[-8rem] h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-violet-300/30 to-pink-300/20 blur-3xl"
+      />
 
-        <FiltersBar sellers={sellers} />
+      <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
+          <span className="text-base font-semibold tracking-tight">Vambe</span>
+        </Link>
+        <div className="flex items-center gap-5 sm:gap-8">
+          <Link
+            href="/dashboard"
+            className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+          >
+            Probar ahora
+          </Link>
+        </div>
+      </nav>
 
-        <section
-          aria-label="KPIs principales"
-          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
-        >
-          <KpiTile label="Total de clientes" value={kpis.totalClients} />
-          <KpiTile
-            label="Tasa de cierre global"
-            value={closeRatePct}
-            highlight="cyan"
-          />
-          <KpiTile
-            label="Mejor vendedor"
-            value={topSellerValue}
-            caption={topSellerCaption}
-            highlight="amber"
-          />
-          <KpiTile
-            label="Pain point más común"
-            value={topPainPointValue}
-            caption={topPainPointCaption}
-          />
-        </section>
+      <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-24 text-center">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+          Análisis de ventas con IA
+        </div>
 
-        <section className="mt-10">
-          <SellersSection filters={metricFilters} />
-        </section>
-        <section className="mt-10">
-          <CloseAnalysis filters={metricFilters} />
-        </section>
-        <section className="mt-10">
-          <ObjectionsSection filters={metricFilters} />
-        </section>
-        <section className="mt-10">
-          <ClientsSection filters={filters} />
-        </section>
-      </div>
+        <h1 className="mx-auto mt-8 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
+          Convertí cada llamada de venta en{" "}
+          <span className="text-primary">datos accionables</span>
+        </h1>
+
+        <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
+          Subí tus transcripciones y obtené métricas claras — tasa de cierre,
+          mejor vendedor, objeciones frecuentes y pain points — sin escuchar
+          una sola llamada.
+        </p>
+
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          >
+            Ver dashboard en vivo
+          </Link>
+          <Link
+            href="#demo"
+            className="inline-flex items-center justify-center rounded-full border border-border bg-card px-6 py-3 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            Agendar demo →
+          </Link>
+        </div>
+
+        <p className="mt-4 text-xs text-muted-foreground">
+          Sin tarjeta · subí un CSV y ves resultados en minutos
+        </p>
+
+        <DashboardPreview />
+      </section>
     </main>
+  );
+}
+
+function DashboardPreview() {
+  return (
+    <div className="relative mx-auto mt-16 max-w-5xl">
+      <div className="rounded-2xl border border-border bg-card p-6 text-left shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)]">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Overview
+            </div>
+            <div className="mt-1 text-lg font-semibold">
+              Pipeline de ventas
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-red-400" />
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="h-2 w-2 rounded-full bg-green-400" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <MockKpi label="Total de clientes" value="1.284" trend="+12.4%" />
+          <MockKpi label="Tasa de cierre" value="38%" trend="+4.1%" accent />
+          <MockKpi
+            label="Mejor vendedor"
+            value="Sofía M."
+            trend="42 cierres"
+          />
+        </div>
+
+        <div className="mt-6 rounded-xl border border-border bg-muted/50 p-4">
+          <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Objeciones frecuentes · últimos 30 días</span>
+            <span>menciones</span>
+          </div>
+          <div className="space-y-2">
+            <MockBar label="Precio elevado" pct={62} />
+            <MockBar label="Timing de compra" pct={44} />
+            <MockBar label="Integración técnica" pct={31} />
+            <MockBar label="Soporte / onboarding" pct={18} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MockKpi({
+  label,
+  value,
+  trend,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  trend: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div
+        className={`mt-2 text-2xl font-semibold tracking-tight ${
+          accent ? "text-primary" : ""
+        }`}
+      >
+        {value}
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground">{trend}</div>
+    </div>
+  );
+}
+
+function MockBar({ label, pct }: { label: string; pct: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-40 shrink-0 text-xs">{label}</div>
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-border/70">
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="w-10 text-right text-xs text-muted-foreground">
+        {pct}%
+      </div>
+    </div>
   );
 }

@@ -1,13 +1,7 @@
 import type { ClientFilters } from "@/clients/application/client-repository";
 import { ClientsTable } from "@/clients/ui/clients-table";
 import { createDrizzleClientRepository } from "@/clients/infrastructure/drizzle-client-repository";
-import {
-  Card,
-  CardDescription,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 /**
  * §8.5 — Clientes. Server Component: issues a single `findAll()` against
@@ -15,7 +9,8 @@ import {
  * to the Client table so the drill-down modal never needs a second fetch.
  *
  * Accepts {@link ClientFilters} (RF3.2 + RF3.4 — the table also honors
- * `search` on name/email).
+ * `search` on name/email). Title and description live in the owning
+ * page's `SectionHeader`.
  */
 export async function ClientsSection({
   filters,
@@ -26,13 +21,7 @@ export async function ClientsSection({
   const clients = await repo.findAll(filters);
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800">
-      <CardHeader>
-        <CardTitle className="text-zinc-100 text-lg">Clientes</CardTitle>
-        <CardDescription className="text-zinc-400">
-          Lista completa — haz clic en una fila para ver el detalle.
-        </CardDescription>
-      </CardHeader>
+    <Card className="rounded-2xl ring-border shadow-[0_10px_40px_-15px_rgba(0,0,0,0.12)]">
       <CardContent>
         <ClientsTable initialClients={clients} />
       </CardContent>

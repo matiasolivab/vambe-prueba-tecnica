@@ -136,19 +136,19 @@ export default function UploadButton() {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950"
+        className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
       >
         <UploadCloudIcon />
         Subir CSV nuevo
       </Button>
       {open ? (
         <DialogContent
-          className="sm:max-w-lg bg-zinc-900 text-zinc-100 ring-zinc-800"
+          className="sm:max-w-lg"
           showCloseButton={state.kind !== "uploading"}
         >
           <DialogHeader>
             <DialogTitle>Subir CSV de clientes</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription>
               El archivo se procesará y clasificará en vivo.
             </DialogDescription>
           </DialogHeader>
@@ -243,17 +243,17 @@ function IdleBody({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        "rounded-lg border-2 border-dashed p-10 text-center cursor-pointer transition-colors",
+        "rounded-xl border-2 border-dashed p-10 text-center cursor-pointer transition-colors",
         isDragging
-          ? "border-cyan-400 bg-cyan-400/5"
-          : "border-zinc-700 hover:border-zinc-600",
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-muted-foreground/40 hover:bg-muted/40",
       )}
     >
-      <UploadCloudIcon className="mx-auto mb-3 text-zinc-500" />
-      <p className="text-sm text-zinc-300">
+      <UploadCloudIcon className="mx-auto mb-3 text-muted-foreground" />
+      <p className="text-sm text-foreground">
         Arrastrá un CSV o hacé click para seleccionar
       </p>
-      <p className="mt-1 text-xs text-zinc-500">Formato .csv · UTF-8</p>
+      <p className="mt-1 text-xs text-muted-foreground">Formato .csv · UTF-8</p>
     </div>
   );
 }
@@ -264,13 +264,13 @@ function UploadingBody({ progress }: { progress: IngestionProgress | null }) {
   const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
   return (
     <div className="space-y-3 py-4">
-      <div className="flex items-center justify-center gap-2 text-zinc-300">
-        <Loader2Icon className="animate-spin text-cyan-400" />
+      <div className="flex items-center justify-center gap-2 text-foreground">
+        <Loader2Icon className="animate-spin text-primary" />
         <span>Procesando…</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded bg-zinc-800">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full bg-cyan-400 transition-[width] duration-150"
+          className="h-full bg-primary transition-[width] duration-150"
           style={{ width: `${percent}%` }}
           data-testid="upload-progress-bar"
           aria-valuenow={percent}
@@ -279,11 +279,11 @@ function UploadingBody({ progress }: { progress: IngestionProgress | null }) {
           role="progressbar"
         />
       </div>
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-muted-foreground">
         {processed} de {total} filas
       </p>
       {progress?.lastEmail ? (
-        <p className="truncate text-center text-xs text-zinc-500">
+        <p className="truncate text-center text-xs text-muted-foreground">
           Procesando: {progress.lastEmail}
         </p>
       ) : null}
@@ -300,14 +300,15 @@ function DoneBody({
 }) {
   return (
     <div className="space-y-4 py-2">
-      <p className="text-sm text-cyan-400">
+      <p className="text-sm text-cyan-700">
         Se clasificaron {report.succeeded} clientes, {report.failed} fallaron
       </p>
       {report.classificationErrors.length > 0 ? (
-        <ul className="max-h-40 space-y-1 overflow-y-auto rounded border border-zinc-800 p-2 text-xs text-zinc-400">
+        <ul className="max-h-40 space-y-1 overflow-y-auto rounded border border-border p-2 text-xs text-muted-foreground">
           {report.classificationErrors.map((e) => (
             <li key={e.email}>
-              <span className="text-zinc-500">{e.email}</span> — {e.message}
+              <span className="text-muted-foreground">{e.email}</span> —{" "}
+              {e.message}
             </li>
           ))}
         </ul>
@@ -334,7 +335,7 @@ function ErrorBody({
 }) {
   return (
     <div className="space-y-3 py-2">
-      <p className="text-sm text-red-400">{state.message}</p>
+      <p className="text-sm text-red-600">{state.message}</p>
       {state.missingColumns && state.missingColumns.length > 0 ? (
         <ColumnList label="Faltan columnas" items={state.missingColumns} />
       ) : null}
@@ -365,13 +366,13 @@ function ColumnList({
   items: readonly string[];
 }) {
   return (
-    <div className="text-xs text-zinc-400">
-      <p className="mb-1 text-zinc-500">{label}:</p>
+    <div className="text-xs text-muted-foreground">
+      <p className="mb-1 text-muted-foreground">{label}:</p>
       <ul className="flex flex-wrap gap-1">
         {items.map((c) => (
           <li
             key={c}
-            className="rounded border border-red-400/30 bg-red-400/10 px-1.5 py-0.5 text-red-300"
+            className="rounded border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-red-700"
           >
             {c}
           </li>

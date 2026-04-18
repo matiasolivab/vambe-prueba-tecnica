@@ -107,7 +107,7 @@ export class TemporalMetrics {
     const where = this.buildWhere({ ...(filters ?? {}), closed: undefined });
     const anchor = await this.fetchAnchorYearMonth(where);
     if (!anchor) return null;
-    return this.fetchTopSellerOfMonth(where, anchor);
+    return this.fetchTopRankedSellerForMonth(where, anchor);
   }
 
   // --- private helpers -----------------------------------------------------
@@ -173,7 +173,7 @@ export class TemporalMetrics {
     return { current: row?.current ?? 0, previous: row?.previous ?? 0 };
   }
 
-  private async fetchTopSellerOfMonth(
+  private async fetchTopRankedSellerForMonth(
     where: SQL | undefined,
     anchor: string,
   ): Promise<TopSellerByMonth | null> {

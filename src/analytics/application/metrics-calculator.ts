@@ -27,23 +27,19 @@ export interface MetricFilters {
 }
 
 /**
- * KPI tiles for dashboard §8.1.
- * `closeRate` is in [0, 1]; 0 when totalClients is 0 (never NaN).
+ * KPI tiles for dashboard Overview. Close-rate, close-rate-by-dimension and
+ * objections were dropped in favour of the temporal metrics powering the
+ * MoM delta + 12-month trend chart.
  */
 export interface KpiMetrics {
   readonly totalClients: number;
-  readonly closeRate: number;
-  readonly topSeller: {
-    readonly name: string;
-    readonly closeRate: number;
-  } | null;
   readonly topPainPoint: {
     readonly value: string;
     readonly count: number;
   } | null;
 }
 
-/** One row of the sellers ranking (§8.2). */
+/** One row of the sellers ranking. */
 export interface SellerRanking {
   readonly name: string;
   readonly totalClients: number;
@@ -51,15 +47,7 @@ export interface SellerRanking {
   readonly closeRate: number;
 }
 
-/** One bucket of a single-dimension close-rate breakdown (§8.3). */
-export interface DimensionRate {
-  readonly value: string;
-  readonly total: number;
-  readonly closed: number;
-  readonly closeRate: number;
-}
-
-/** One cell of the sellers × industries crosstab (§8.2). */
+/** One cell of the sellers × industries crosstab. */
 export interface SellerByIndustryCell {
   readonly seller: string;
   readonly industry: string;
@@ -68,56 +56,24 @@ export interface SellerByIndustryCell {
   readonly closeRate: number;
 }
 
-/** Objections broken down by deal outcome (§8.4). */
-export interface ObjectionBreakdown {
-  readonly inClosed: readonly DimensionRate[];
-  readonly inNotClosed: readonly DimensionRate[];
-}
-
-export type CloseRateDimension =
-  | "industry"
-  | "companySize"
-  | "decisionMakerRole"
-  | "sentiment"
-  | "buyingSignal"
-  | "purchaseTimeline";
-
-// Map public dimension names → Drizzle column references. Keeping the map
-// internal means the service API stays string-typed while SQL stays type-safe.
-const DIMENSION_COLUMNS: Readonly<Record<CloseRateDimension, PgColumn>> = {
-  industry: clients.industry,
-  companySize: clients.companySize,
-  decisionMakerRole: clients.decisionMakerRole,
-  sentiment: clients.sentiment,
-  buyingSignal: clients.buyingSignal,
-  purchaseTimeline: clients.purchaseTimeline,
-};
-
 /**
  * Analytics service — computes every dashboard metric server-side (RF3.1)
  * with DB-level aggregations so filters recompute in <200ms (RNF1.3).
  *
- * Every method accepts optional `MetricFilters`. When `totalClients === 0`
- * we always emit `closeRate: 0` (never NaN/null) so the UI never renders
- * divide-by-zero artefacts.
+ * Every method accepts optional `MetricFilters`. `closeRate` values in the
+ * sellers ranking emit `0` (never NaN/null) when totals are zero, so the UI
+ * never renders divide-by-zero artefacts.
  */
 export class MetricsCalculator {
   public constructor(private readonly db: NeonHttpDatabase) {}
 
   public async kpis(filters?: MetricFilters): Promise<KpiMetrics> {
     const where = this.buildWhere(filters);
-    const [totals, sellers, painPoints] = await Promise.all([
+    const [totals, painPoints] = await Promise.all([
       this.fetchTotals(where),
-      this.fetchTopSeller(where),
       this.fetchTopPainPoint(where),
     ]);
-
-    return {
-      totalClients: totals.total,
-      closeRate: safeRate(totals.closed, totals.total),
-      topSeller: sellers,
-      topPainPoint: painPoints,
-    };
+    return { totalClients: totals.total, topPainPoint: painPoints };
   }
 
   public async sellerRanking(
@@ -144,38 +100,6 @@ export class MetricsCalculator {
       closedCount: r.closed,
       closeRate: safeRate(r.closed, r.total),
     }));
-  }
-
-  public async closeRateBy(
-    dimension: CloseRateDimension,
-    filters?: MetricFilters,
-  ): Promise<readonly DimensionRate[]> {
-    const column = DIMENSION_COLUMNS[dimension];
-    const where = this.buildWhereClassified(filters, column);
-    // Project `column` through a `sql` expression so the row type is stable
-    // regardless of which dimension is selected.
-    const rows = await this.db
-      .select({
-        value: sql<string | null>`${column}`,
-        total: sql<number>`count(*)::int`,
-        closed: sql<number>`sum(case when ${clients.closed} then 1 else 0 end)::int`,
-      })
-      .from(clients)
-      .where(where)
-      .groupBy(column)
-      .orderBy(desc(sql`count(*)`));
-
-    return rows
-      .filter(
-        (r): r is { value: string; total: number; closed: number } =>
-          typeof r.value === "string",
-      )
-      .map((r) => ({
-        value: r.value,
-        total: r.total,
-        closed: r.closed,
-        closeRate: safeRate(r.closed, r.total),
-      }));
   }
 
   public async sellerByIndustry(
@@ -210,16 +134,6 @@ export class MetricsCalculator {
         closed: r.closed,
         closeRate: safeRate(r.closed, r.total),
       }));
-  }
-
-  public async objections(
-    filters?: MetricFilters,
-  ): Promise<ObjectionBreakdown> {
-    const [inClosed, inNotClosed] = await Promise.all([
-      this.fetchObjections(filters, true),
-      this.fetchObjections(filters, false),
-    ]);
-    return { inClosed, inNotClosed };
   }
 
   // --- private helpers -----------------------------------------------------
@@ -269,27 +183,6 @@ export class MetricsCalculator {
     return { total: row?.total ?? 0, closed: row?.closed ?? 0 };
   }
 
-  private async fetchTopSeller(
-    where: SQL | undefined,
-  ): Promise<{ name: string; closeRate: number } | null> {
-    const [row] = await this.db
-      .select({
-        name: clients.assignedSeller,
-        total: sql<number>`count(*)::int`,
-        closed: sql<number>`sum(case when ${clients.closed} then 1 else 0 end)::int`,
-      })
-      .from(clients)
-      .where(where)
-      .groupBy(clients.assignedSeller)
-      .orderBy(
-        desc(sql`sum(case when ${clients.closed} then 1 else 0 end)::float / nullif(count(*), 0)`),
-        desc(sql`count(*)`),
-      )
-      .limit(1);
-    if (!row) return null;
-    return { name: row.name, closeRate: safeRate(row.closed, row.total) };
-  }
-
   private async fetchTopPainPoint(
     where: SQL | undefined,
   ): Promise<{ value: string; count: number } | null> {
@@ -308,36 +201,6 @@ export class MetricsCalculator {
       .limit(1);
     if (!row || row.value === null) return null;
     return { value: row.value, count: row.count };
-  }
-
-  private async fetchObjections(
-    filters: MetricFilters | undefined,
-    closed: boolean,
-  ): Promise<readonly DimensionRate[]> {
-    const base = this.buildWhere({ ...(filters ?? {}), closed });
-    const where = base
-      ? (and(base, isNotNull(clients.keyObjection)) as SQL)
-      : isNotNull(clients.keyObjection);
-    const rows = await this.db
-      .select({
-        value: clients.keyObjection,
-        total: sql<number>`count(*)::int`,
-        closed: sql<number>`sum(case when ${clients.closed} then 1 else 0 end)::int`,
-      })
-      .from(clients)
-      .where(where)
-      .groupBy(clients.keyObjection)
-      .orderBy(desc(sql`count(*)`));
-    return rows
-      .filter((r): r is { value: string; total: number; closed: number } =>
-        typeof r.value === "string",
-      )
-      .map((r) => ({
-        value: r.value,
-        total: r.total,
-        closed: r.closed,
-        closeRate: safeRate(r.closed, r.total),
-      }));
   }
 }
 

@@ -12,10 +12,10 @@ describe("CLASSIFIER_VERSION", () => {
     expect(CLASSIFIER_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
-  it("is on the 2.x major line (schema shape changed — output contract breaks with 1.x)", () => {
-    // Major bump 1.x → 2.0.0 because the output schema removes two categorical
-    // dimensions (purchaseTimeline, decisionMakerRole). Persisted rows from 1.x
-    // are distinguishable in the DB by this version string.
-    expect(CLASSIFIER_VERSION).toMatch(/^2\.\d+\.\d+$/);
+  it("is on the 3.x major line (schema shape changed — buyingSignal replaced by leadSource)", () => {
+    // Major bump 2.x → 3.0.0 because the output schema swaps buyingSignal for
+    // leadSource. Persisted rows from 2.x are distinguishable in the DB by this
+    // version string.
+    expect(CLASSIFIER_VERSION).toMatch(/^3\.\d+\.\d+$/);
   });
 });

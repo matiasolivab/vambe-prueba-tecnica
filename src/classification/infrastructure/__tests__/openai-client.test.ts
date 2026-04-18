@@ -37,14 +37,12 @@ const goodClassification: Classification = {
   companySize: "Startup",
   mainPainPoint: "Volumen Repetitivo",
   keyObjection: "Ninguna",
-  purchaseTimeline: "Urgente (<2 sem)",
   buyingSignal: "Muy Interesado",
-  decisionMakerRole: "CEO/Fundador",
   sentiment: "Positivo",
   needsSummary:
-    "El cliente opera un e-commerce con 500 consultas diarias repetitivas y necesita automatizar respuestas para liberar al equipo de soporte y mantener tiempos de reacción.",
+    "El cliente opera un e-commerce con 500 consultas diarias repetitivas y necesita automatizar respuestas para liberar al equipo de soporte.",
   nextSteps:
-    "Agendar demo personalizada en los próximos cinco días hábiles y preparar propuesta comercial ajustada al volumen de tickets reportado.",
+    "Agendar demo en los próximos cinco días hábiles y preparar propuesta comercial al volumen reportado.",
 };
 
 type Scenario =

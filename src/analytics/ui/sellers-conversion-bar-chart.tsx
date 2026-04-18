@@ -31,6 +31,14 @@ export interface SellersConversionBarChartProps {
 export function SellersConversionBarChart({
   data,
 }: SellersConversionBarChartProps) {
+  if (data.length === 0) {
+    return (
+      <p className="text-sm text-zinc-500">
+        Sin vendedores con reuniones en el período seleccionado.
+      </p>
+    );
+  }
+
   return (
     <section
       role="region"

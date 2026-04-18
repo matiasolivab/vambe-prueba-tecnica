@@ -25,9 +25,7 @@ function makeClassification(
     companySize: "PYME",
     mainPainPoint: "Equipo Saturado",
     keyObjection: "Ninguna",
-    purchaseTimeline: "Corto (2-8 sem)",
     buyingSignal: "Evaluando",
-    decisionMakerRole: "Manager de Área",
     sentiment: "Neutro",
     needsSummary:
       "Necesita automatizar respuestas a clientes frecuentes y liberar tiempo del equipo de soporte para casos complejos.",
@@ -104,52 +102,32 @@ describe("ClassificationValidator", () => {
     expect(names).toContain("frio_signal_with_positive_sentiment");
   });
 
-  it("fires urgent_timeline_with_objection on Urgente + active objection", () => {
-    const validator = new ClassificationValidator();
-
-    const warnings = validator.validate(
-      makeClassification({
-        purchaseTimeline: "Urgente (<2 sem)",
-        keyObjection: "Integración",
-      }),
-    );
-
-    const w = warnings.find((x) => x.name === "urgent_timeline_with_objection");
-    expect(w).toBeDefined();
-    expect(w?.severity).toBe("warning");
-    expect(w?.message).toContain("Integración");
-  });
-
-  it("does NOT fire urgent_timeline_with_objection when objection is Ninguna", () => {
-    const validator = new ClassificationValidator();
-
-    const warnings = validator.validate(
-      makeClassification({
-        purchaseTimeline: "Urgente (<2 sem)",
-        keyObjection: "Ninguna",
-      }),
-    );
-
-    const names = warnings.map((w) => w.name);
-    expect(names).not.toContain("urgent_timeline_with_objection");
-  });
-
   it("fires multiple rules simultaneously for overlapping inconsistencies", () => {
     const validator = new ClassificationValidator();
 
-    const warnings = validator.validate(
-      makeClassification({
-        buyingSignal: "Muy Interesado",
-        sentiment: "Negativo",
-        purchaseTimeline: "Urgente (<2 sem)",
-        keyObjection: "Compliance",
-      }),
-    );
+    // Both signal_vs_sentiment and frio_signal_with_positive_sentiment
+    // can be triggered via custom rules — here we verify the multi-rule path
+    // with a custom injected pair so the test stays self-contained.
+    const always1: InconsistencyRule = {
+      name: "rule_a",
+      severity: "warning",
+      matches: () => true,
+      message: () => "A",
+    };
+    const always2: InconsistencyRule = {
+      name: "rule_b",
+      severity: "warning",
+      matches: () => true,
+      message: () => "B",
+    };
+    const v2 = new ClassificationValidator([always1, always2]);
+
+    const warnings = v2.validate(makeClassification());
 
     const names = warnings.map((w) => w.name).sort();
     expect(names).toHaveLength(2);
-    expect(names).toContain("signal_vs_sentiment");
-    expect(names).toContain("urgent_timeline_with_objection");
+    expect(names).toContain("rule_a");
+    expect(names).toContain("rule_b");
   });
 
   it("returns a readonly-typed array (compile-time check)", () => {

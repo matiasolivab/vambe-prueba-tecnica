@@ -58,14 +58,6 @@ export const INCONSISTENCY_RULES: readonly InconsistencyRule[] = [
     message: () =>
       "Señal fría pero sentiment positivo — posible inconsistencia en análisis.",
   },
-  {
-    name: "urgent_timeline_with_objection",
-    severity: "warning",
-    matches: (c) =>
-      c.purchaseTimeline === "Urgente (<2 sem)" && c.keyObjection !== "Ninguna",
-    message: (c) =>
-      `Timeline urgente con objeción activa (${c.keyObjection}) — contradictorio, revisar priorización.`,
-  },
 ];
 
 export class ClassificationValidator {

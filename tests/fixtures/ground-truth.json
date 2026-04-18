@@ -1,8 +1,8 @@
 {
   "$schema": "./ground-truth.schema.json",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "createdAt": "2026-04-18",
-  "note": "v2.0.0 (2026-04-18): removed purchaseTimeline and decisionMakerRole fields (CLASSIFIER_VERSION 2.0.0 — schema shape change). Trimmed needsSummary and nextSteps to match new Zod bounds (max 600/450 chars). v1.2.0 history preserved: 6 synthetic adversarial samples (indexes 10-15) force discrimination on buyingSignal {10 Evaluando, 4 Muy Interesado, 1 Tibio, 1 Frío}/16 and sentiment {11 Neutro, 4 Positivo, 1 Negativo}/16. Both require real discrimination above 80% threshold.",
+  "note": "v3.0.0 (2026-04-18): removed buyingSignal and added leadSource (CLASSIFIER_VERSION 3.0.0 — schema shape change). Adversarial samples (10-15) now discriminate on sentiment only (buyingSignal removed); future work: add leadSource-discrimination adversarial subset. leadSource distribution: {No Mencionado: 5, Recomendación: 4, Búsqueda Online: 2, Otros: 4, Outbound: 1, Publicidad: 0}/16. v2.0.0 (2026-04-18): removed purchaseTimeline and decisionMakerRole fields (CLASSIFIER_VERSION 2.0.0 — schema shape change). Trimmed needsSummary and nextSteps to match new Zod bounds (max 600/450 chars). v1.2.0 history preserved: 6 synthetic adversarial samples (indexes 10-15) force discrimination on sentiment {11 Neutro, 4 Positivo, 1 Negativo}/16.",
   "samples": [
     {
       "email": "c.perez@example.com",
@@ -14,12 +14,12 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Recomendación",
         "sentiment": "Neutro",
         "needsSummary": "Empresa de servicios financieros con operaciones internacionales expandidas. El área de atención al cliente maneja aproximadamente 500 interacciones semanales repetitivas. Buscan reducir la carga operativa y mejorar la experiencia del cliente con respuestas más rápidas.",
         "nextSteps": "Acordar demo con foco en automatización de consultas financieras repetitivas. Evaluar integración con herramientas internas y confirmar soporte multi-idioma para la operación internacional."
       },
-      "humanReasoning": "Servicios financieros con operación internacional expandida (Mid-market). Pain explícito en el transcript: 500 consultas repetitivas/sem. Transcript describe interés exploratorio ('consideramos automatizar', 'posible solucion', 'creemos podrían') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de que closed=1 en el CSV. Decisor parece management operativo por lenguaje ('nuestro equipo actual') sin señales de fundador."
+      "humanReasoning": "Servicios financieros con operación internacional expandida (Mid-market). Pain explícito en el transcript: 500 consultas repetitivas/sem. Transcript describe interés exploratorio ('consideramos automatizar', 'posible solucion', 'creemos podrían') sin lenguaje de compromiso ni timeline → Evaluando / Neutro, independientemente de que closed=1 en el CSV. Decisor parece management operativo por lenguaje ('nuestro equipo actual') sin señales de fundador. leadSource='Recomendación' porque 'un colega menciono Vambe en una conferencia de tecnologia' es una recomendación personal explícita de un colega."
     },
     {
       "email": "m.lopez@example.com",
@@ -31,12 +31,12 @@
         "companySize": "PYME",
         "mainPainPoint": "Variabilidad Estacional",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Búsqueda Online",
         "sentiment": "Neutro",
         "needsSummary": "Tienda e-commerce deportiva con picos estacionales: volumen bajo en régimen normal, pero hasta 300 mensajes diarios en promociones. Requieren personalización del tono de marca deportiva para no sacrificar cercanía con el cliente al automatizar.",
         "nextSteps": "Proponer piloto en consultas de envíos y devoluciones alineado con el próximo ciclo promocional. Validar tono de marca y evaluar integración con la plataforma de e-commerce actual."
       },
-      "humanReasoning": "E-commerce deportivo (PYME por volumen moderado declarado). Pain central transcript-only: picos explícitos 'durante las promociones' / 'epocas pico' — Variabilidad Estacional aplica más fielmente que Volumen Repetitivo (el cliente enmarca el dolor en la estacionalidad, no en la repetición). Lenguaje posesivo ('nuestra marca', 'nuestra tienda') sugiere fundador-dueño. Transcript muestra interés exploratorio ('me intereso', 'nos llamo la atencion') sin compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1 en el CSV."
+      "humanReasoning": "E-commerce deportivo (PYME por volumen moderado declarado). Pain central transcript-only: picos explícitos 'durante las promociones' / 'epocas pico' — Variabilidad Estacional aplica más fielmente que Volumen Repetitivo (el cliente enmarca el dolor en la estacionalidad, no en la repetición). Lenguaje posesivo ('nuestra marca', 'nuestra tienda') sugiere fundador-dueño. Transcript muestra interés exploratorio ('me intereso', 'nos llamo la atencion') sin compromiso ni timeline → Evaluando / Neutro, independientemente de closed=1 en el CSV. leadSource='Búsqueda Online' porque 'Buscando soluciones en Google, encontre Vambe' es una búsqueda activa online explícita."
     },
     {
       "email": "j.gonzalez@example.com",
@@ -48,12 +48,12 @@
         "companySize": "PYME",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Desconfianza Automatización",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Recomendación",
         "sentiment": "Neutro",
         "needsSummary": "Clínica en crecimiento con 80 interacciones diarias sobre citas y tratamientos. Requieren integración con su sistema de citas y estricta confidencialidad de datos de pacientes. Escepticismo inicial hacia tecnología en salud, mitigado parcialmente tras conocer Vambe.",
         "nextSteps": "Evaluar integración técnica con el sistema de citas y revisar garantías de confidencialidad. Definir piloto con consultas de baja sensibilidad clínica antes de escalar a tratamientos."
       },
-      "humanReasoning": "Salud (clínica PYME). Pain en transcript: 'gestion manual ha resultado ser ineficiente' con 80 interacciones diarias sobre citas y tratamientos → Volumen Repetitivo (la integración con sistema de citas es un REQUISITO del remedio, no el dolor central). Objeción explícita en el transcript: 'inicialmente dudamos sobre implementar tecnologia en salud' → Desconfianza Automatización (queda verbalizada aun si se mitigó). Transcript muestra interés exploratorio ('Estamos interesados') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1. Dueño/director de clínica como decisor por lenguaje ('Nuestra clinica')."
+      "humanReasoning": "Salud (clínica PYME). Pain en transcript: 'gestion manual ha resultado ser ineficiente' con 80 interacciones diarias sobre citas y tratamientos → Volumen Repetitivo (la integración con sistema de citas es un REQUISITO del remedio, no el dolor central). Objeción explícita en el transcript: 'inicialmente dudamos sobre implementar tecnologia en salud' → Desconfianza Automatización (queda verbalizada aun si se mitigó). Transcript muestra interés exploratorio ('Estamos interesados') sin lenguaje de compromiso ni timeline → Evaluando / Neutro, independientemente de closed=1. Dueño/director de clínica como decisor por lenguaje ('Nuestra clinica'). leadSource='Recomendación' porque 'un colega en una conferencia sobre innovacion medica menciono Vambe' es una recomendación personal explícita de un colega."
     },
     {
       "email": "a.martinez@example.com",
@@ -65,12 +65,12 @@
         "companySize": "Startup",
         "mainPainPoint": "Equipo Saturado",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Recomendación",
         "sentiment": "Neutro",
         "needsSummary": "Startup tecnológica con equipo pequeño y crecimiento exponencial en interacciones con usuarios. Requieren flexibilidad de configuración para adaptarse a necesidades cambiantes e integración con las plataformas que ya operan.",
         "nextSteps": "Demo focalizada en flexibilidad para startups. Evaluar compatibilidad técnica con el stack actual y discutir modelo de precios escalable al crecimiento proyectado."
       },
-      "humanReasoning": "Startup tech explícitamente. Pain transcript-only: 'somos un equipo pequeño' con 'interacciones... han crecido exponencialmente' → Equipo Saturado. Fundadora como decisora (contexto 'evento de networking donde otros fundadores compartieron experiencias'). Transcript describe interés valorativo ('valoramos mucho') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
+      "humanReasoning": "Startup tech explícitamente. Pain transcript-only: 'somos un equipo pequeño' con 'interacciones... han crecido exponencialmente' → Equipo Saturado. Fundadora como decisora (contexto 'evento de networking donde otros fundadores compartieron experiencias'). Transcript describe interés valorativo ('valoramos mucho') sin lenguaje de compromiso ni timeline → Evaluando / Neutro, independientemente de closed=1. leadSource='Recomendación' porque 'otros fundadores compartieron experiencias positivas' en el evento es una recomendación de pares explícita."
     },
     {
       "email": "l.rodriguez@example.com",
@@ -82,12 +82,12 @@
         "companySize": "PYME",
         "mainPainPoint": "Variabilidad Estacional",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Recomendación",
         "sentiment": "Neutro",
         "needsSummary": "Institución educativa con 50 consultas semanales en régimen normal que se triplican a ~150 durante admisiones. Requieren precisión en temas sensibles como becas y plazos de inscripción durante los picos.",
         "nextSteps": "Piloto calendarizado para el próximo ciclo de admisiones. Curar base de conocimiento sobre programas y becas. Definir protocolo de escalación para consultas complejas."
       },
-      "humanReasoning": "Educación (PYME). Pain estacional explícito en el transcript ('periodos de admision', 'temporadas de alta demanda', volumen que 'se dispara' y 'puede triplicarse') → Variabilidad Estacional. Coordinador interno como decisor (lenguaje 'reunion interna' con 'compañero de trabajo', sin marca de fundador). Transcript describe interés exploratorio ('Nos interesa una solucion') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
+      "humanReasoning": "Educación (PYME). Pain estacional explícito en el transcript ('periodos de admision', 'temporadas de alta demanda', volumen que 'se dispara' y 'puede triplicarse') → Variabilidad Estacional. Coordinador interno como decisor (lenguaje 'reunion interna' con 'compañero de trabajo', sin marca de fundador). Transcript describe interés exploratorio ('Nos interesa una solucion') sin lenguaje de compromiso ni timeline → Evaluando / Neutro, independientemente de closed=1. leadSource='Recomendación' porque 'Un compañero de trabajo menciono Vambe en una reunion interna' es una recomendación explícita de un colega."
     },
     {
       "email": "p.ramirez@example.com",
@@ -99,12 +99,12 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Respuestas Lentas",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Búsqueda Online",
         "sentiment": "Neutro",
         "needsSummary": "Empresa de logística con hasta 150 consultas diarias en picos. Requieren actualizaciones de envíos en tiempo real y gestión automatizada de incidencias para mejorar la satisfacción del cliente. Fase exploratoria sin compromiso concreto.",
         "nextSteps": "Demo técnica con foco en actualizaciones en tiempo real e incidencias. Evaluar integración con sistemas de tracking y TMS existentes."
       },
-      "humanReasoning": "Logística (Mid-market por operación de envíos escalada). Pain transcript-only: 'demanda por actualizaciones en tiempo real... ha crecido' como expectativa que no pueden cubrir → Respuestas Lentas. Manager operativo como decisor (lenguaje 'donde operamos' sin marca de fundador). Transcript describe interés valorativo ('consideramos fundamental') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto)."
+      "humanReasoning": "Logística (Mid-market por operación de envíos escalada). Pain transcript-only: 'demanda por actualizaciones en tiempo real... ha crecido' como expectativa que no pueden cubrir → Respuestas Lentas. Manager operativo como decisor (lenguaje 'donde operamos' sin marca de fundador). Transcript describe interés valorativo ('consideramos fundamental') sin lenguaje de compromiso ni timeline → Evaluando / Neutro (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto). leadSource='Búsqueda Online' porque 'Descubrimos Vambe gracias a un articulo en linea sobre automatizacion de procesos' es una búsqueda activa online explícita."
     },
     {
       "email": "r.silva@example.com",
@@ -116,12 +116,12 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Firma de consultoría con cartera internacional que genera volumen alto de interacciones en múltiples idiomas y zonas horarias. Buscan automatización que sostenga cobertura 24/7 sin escalar headcount internacional.",
         "nextSteps": "Demo con foco en capacidades multi-idioma y zonas horarias. Evaluar integración con CRM actual. Piloto acotado a clientes internacionales para validar ajuste cultural."
       },
-      "humanReasoning": "Consultoría internacional (Mid-market). Pain transcript-only: 'gran cantidad de interacciones diarias' cruzando idiomas y zonas horarias → Volumen Repetitivo (los idiomas/zonas horarias son un REQUISITO del remedio, no el dolor central). Partner/socio de consultora como decisor probable (lenguaje 'nuestra firma'). Transcript describe interés exploratorio ('nos intereso la posibilidad') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
+      "humanReasoning": "Consultoría internacional (Mid-market). Pain transcript-only: 'gran cantidad de interacciones diarias' cruzando idiomas y zonas horarias → Volumen Repetitivo (los idiomas/zonas horarias son un REQUISITO del remedio, no el dolor central). Partner/socio de consultora como decisor probable (lenguaje 'nuestra firma'). Transcript describe interés exploratorio ('nos intereso la posibilidad') sin lenguaje de compromiso ni timeline → Evaluando / Neutro, independientemente de closed=1. leadSource='Otros' porque 'una feria empresarial' es un evento presencial que no encaja en Búsqueda Online/Recomendación/Outbound."
     },
     {
       "email": "v.soto@example.com",
@@ -133,12 +133,12 @@
         "companySize": "PYME",
         "mainPainPoint": "Integración Técnica",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Empresa de bienes raíces con 200 interacciones semanales sobre disponibilidad y detalles de propiedades. Requieren integración crítica con su base de datos de propiedades para responder consultas con datos en vivo.",
         "nextSteps": "Discovery técnico de la base de datos de propiedades para definir el alcance de la integración. Demo con datos dinámicos y piloto con subconjunto de propiedades priorizadas."
       },
-      "humanReasoning": "Real Estate (PYME por operación moderada). Pain principal transcript-only: 'Nos interesa especialmente la capacidad de integrar la herramienta con nuestra base de datos de propiedades' — el cliente verbaliza la integración con BD como requisito crítico → Integración Técnica. Líder de inmobiliaria como decisor (lenguaje 'Nuestra empresa de bienes raices'). Transcript describe interés condicional ('creo que podria ser', 'Nos interesa') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido, independientemente de closed=1."
+      "humanReasoning": "Real Estate (PYME por operación moderada). Pain principal transcript-only: 'Nos interesa especialmente la capacidad de integrar la herramienta con nuestra base de datos de propiedades' — el cliente verbaliza la integración con BD como requisito crítico → Integración Técnica. Líder de inmobiliaria como decisor (lenguaje 'Nuestra empresa de bienes raices'). Transcript describe interés condicional ('creo que podria ser', 'Nos interesa') sin lenguaje de compromiso ni timeline → Evaluando / Neutro, independientemente de closed=1. leadSource='Otros' porque 'una feria de tecnologia inmobiliaria' es un evento presencial sectorial que no encaja en ninguna de las otras categorías."
     },
     {
       "email": "c.leon@example.com",
@@ -150,12 +150,12 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Equipo Saturado",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Empresa de energía renovable con volumen que supera la capacidad del equipo de soporte. Requieren gestión automatizada de consultas técnicas del sector y programación de servicios de mantenimiento.",
         "nextSteps": "Demo técnica enfocada en consultas del sector energético y agenda de mantenimiento. Evaluar integración con el sistema de gestión de trabajos actual."
       },
-      "humanReasoning": "Hogar/Sostenibilidad (energía renovable, Mid-market). Pain transcript-only: 'el volumen de interacciones ha superado la capacidad de nuestro equipo de soporte' → Equipo Saturado. Manager operativo como decisor (lenguaje 'nuestro equipo de soporte' sin marca de fundador). Transcript describe interés valorativo ('nos llamó la atención') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto)."
+      "humanReasoning": "Hogar/Sostenibilidad (energía renovable, Mid-market). Pain transcript-only: 'el volumen de interacciones ha superado la capacidad de nuestro equipo de soporte' → Equipo Saturado. Manager operativo como decisor (lenguaje 'nuestro equipo de soporte' sin marca de fundador). Transcript describe interés valorativo ('nos llamó la atención') sin lenguaje de compromiso ni timeline → Evaluando / Neutro (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto). leadSource='Otros' porque 'un taller sobre tecnología aplicada a la energía' es un evento presencial sectorial que no encaja en ninguna otra categoría."
     },
     {
       "email": "g.mendez@example.com",
@@ -167,120 +167,120 @@
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Firma de arquitectura en expansión internacional con cartera que creció +40% (~120 a 170 consultas semanales). Consultas repetitivas sobre precios, materiales y normativas regionales. Buscan automatización que libere a los arquitectos para tareas estratégicas.",
         "nextSteps": "Demo con foco en consultas técnicas segmentadas por región. Evaluar manejo de diferencias normativas internacionales y definir criterios de decisión interna."
       },
-      "humanReasoning": "Arquitectura internacional (Servicios Profesionales, Mid-market). Pain explícito transcript-only: 'preguntas repetitivas sobre precios, materiales, tiempos de entrega y normativas' que 'ha comenzado a saturar a nuestro equipo' → Volumen Repetitivo (prioridad sobre Equipo Saturado porque la repetitividad es el driver primario que el cliente verbaliza). Partner de firma como decisor probable. Transcript describe interés valorativo ('nos llamó la atención') sin lenguaje de compromiso ni timeline → Evaluando / Neutro / Indefinido (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto)."
+      "humanReasoning": "Arquitectura internacional (Servicios Profesionales, Mid-market). Pain explícito transcript-only: 'preguntas repetitivas sobre precios, materiales, tiempos de entrega y normativas' que 'ha comenzado a saturar a nuestro equipo' → Volumen Repetitivo (prioridad sobre Equipo Saturado porque la repetitividad es el driver primario que el cliente verbaliza). Partner de firma como decisor probable. Transcript describe interés valorativo ('nos llamó la atención') sin lenguaje de compromiso ni timeline → Evaluando / Neutro (coherente con closed=0 del CSV, pero la etiqueta se sostiene sólo por el texto). leadSource='Otros' porque 'un seminario sobre automatización en la industria de la construcción y diseño' es un evento presencial sectorial."
     },
     {
       "email": "adversarial-commitment-01@example.com",
       "name": "[Synthetic] Fintech Finalist",
       "synthetic": true,
-      "adversarialPurpose": "Tests Corto + Muy Interesado + Positivo frontier. Original 10 samples all collapse to Indefinido/Evaluando/Neutro; this sample forces discrimination via canonical commitment phrases from prompt-builder.ts:153,166 ('estamos interesados en implementar', 'decidimos avanzar', 'próximas cuatro semanas').",
+      "adversarialPurpose": "Tests Positivo + Muy Interesado frontier via canonical commitment phrases ('estamos interesados en implementar', 'decidimos avanzar'). All 10 real samples collapse to Evaluando/Neutro; this sample forces sentiment discrimination above the descriptive-vs-commitment threshold (v3.0.0: buyingSignal removed, this now tests sentiment frontier only).",
       "transcript": "Nuestra fintech procesa alrededor de 800 consultas semanales desde que expandimos a tres mercados en Latinoamérica. Ya evaluamos dos competidores y decidimos avanzar con Vambe. Estamos interesados en implementar en las próximas cuatro semanas para llegar preparados al próximo ciclo de onboarding de clientes corporativos. Pasanos la propuesta comercial y el cronograma de implementación para que podamos firmar cuanto antes.",
       "expected": {
         "industry": "Servicios Financieros",
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Muy Interesado",
+        "leadSource": "No Mencionado",
         "sentiment": "Positivo",
         "needsSummary": "Fintech con 800 consultas semanales en expansión a tres mercados latinoamericanos. Decisión tomada tras evaluar dos competidores: firmar rápido para completar rollout en las próximas cuatro semanas antes del ciclo de onboarding corporativo.",
         "nextSteps": "Enviar propuesta comercial y cronograma dentro de 48-72 horas. Coordinar kickoff técnico en la primera semana. Acordar firma de contrato para destrabar el arranque."
       },
-      "humanReasoning": "Servicios Financieros (fintech). Mid-market por volumen 800/sem + expansión multi-país. Volumen Repetitivo como pain por default fuerte (no hay señal inequívoca de otras causas). Lenguaje corporativo operativo ('Nuestra fintech procesa', 'Pasanos la propuesta') sin marca de fundador. COMPROMISO verbalizado exacto: 'decidimos avanzar', 'Estamos interesados en implementar' (frase canónica de Muy Interesado per prompt-builder.ts:166) → Muy Interesado. Timeline EXPLÍCITO 'próximas cuatro semanas' → Corto (2-8 sem). Tono positivo con intención activa → Positivo."
+      "humanReasoning": "Servicios Financieros (fintech). Mid-market por volumen 800/sem + expansión multi-país. Volumen Repetitivo como pain por default fuerte (no hay señal inequívoca de otras causas). Lenguaje corporativo operativo ('Nuestra fintech procesa', 'Pasanos la propuesta') sin marca de fundador. COMPROMISO verbalizado exacto: 'decidimos avanzar', 'Estamos interesados en implementar' → Sentimiento Positivo con intención activa. leadSource='No Mencionado' porque la transcripción no indica cómo llegaron a Vambe."
     },
     {
       "email": "adversarial-urgency-01@example.com",
       "name": "[Synthetic] Logistics Crisis",
       "synthetic": true,
-      "adversarialPurpose": "Tests Urgente (<2 sem) + Muy Interesado + Positivo frontier via explicit immediacy language ('esta misma semana', 'no podemos esperar más') — none of the 10 real samples contains Urgent language.",
+      "adversarialPurpose": "Tests Positivo + urgency frontier via explicit immediacy language ('esta misma semana', 'no podemos esperar más') — none of the 10 real samples contains urgency language. Forces sentiment discrimination when crisis language is present (v3.0.0: buyingSignal removed, this tests Positivo + urgency sentiment frontier only).",
       "transcript": "Operamos una empresa de logística con 250 consultas diarias sobre tracking y tiempos de entrega. Ayer se nos renunciaron dos supervisores del call center y el volumen se acumula sin respuesta. Necesitamos implementar Vambe esta misma semana, no podemos esperar más. Mandá el contrato ya y coordinamos el go-live para el viernes a más tardar.",
       "expected": {
         "industry": "Logística",
         "companySize": "Mid-market",
         "mainPainPoint": "Equipo Saturado",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Muy Interesado",
+        "leadSource": "No Mencionado",
         "sentiment": "Positivo",
         "needsSummary": "Empresa de logística con 250 consultas diarias sobre tracking. Crisis operativa inmediata: dos supervisores del call center renunciaron y el volumen se acumula. Urgencia máxima: firmar esta semana y estar en producción el viernes.",
         "nextSteps": "Contrato para firma inmediata en 24 horas. Fast-track de onboarding para go-live en menos de cinco días. Configurar base de conocimiento sobre tracking y tiempos de entrega."
       },
-      "humanReasoning": "Logística (Mid-market por volumen 1750/sem). Pain dual: crisis de renuncias + volumen acumulado. 'se nos renunciaron dos supervisores', 'el volumen se acumula sin respuesta' → Equipo Saturado (crisis de headcount explícita, gana sobre Volumen Repetitivo default). Voz de dueño ('Operamos una empresa', imperativo directo 'Mandá el contrato ya'). Lenguaje de inmediatez inequívoco per prompt-builder.ts:152: 'esta misma semana', 'no podemos esperar más', 'viernes a más tardar' → Urgente (<2 sem). Compromiso máximo con intención activa → Muy Interesado + Positivo."
+      "humanReasoning": "Logística (Mid-market por volumen 1750/sem). Pain dual: crisis de renuncias + volumen acumulado. 'se nos renunciaron dos supervisores', 'el volumen se acumula sin respuesta' → Equipo Saturado (crisis de headcount explícita, gana sobre Volumen Repetitivo default). Voz de dueño ('Operamos una empresa', imperativo directo 'Mandá el contrato ya'). Lenguaje de inmediatez inequívoco: 'esta misma semana', 'no podemos esperar más', 'viernes a más tardar'. Compromiso máximo con intención activa → Positivo. leadSource='No Mencionado' porque la transcripción no indica cómo llegaron a Vambe."
     },
     {
       "email": "adversarial-commitment-02@example.com",
       "name": "[Synthetic] Language School Planning",
       "synthetic": true,
-      "adversarialPurpose": "Second Corto + Muy Interesado + Positivo sample to prevent the model from coupling commitment signals to founder-voice. The interlocutor explicitly defers to a separate 'dirección' that approved the budget — tests buyingSignal + sentiment discrimination when commitment language comes from a non-owner middle-management voice.",
+      "adversarialPurpose": "Tests Positivo + commitment frontier when commitment language comes from non-owner middle-management voice — prevents the model from coupling positive sentiment to founder-voice only. The interlocutor defers to a separate 'dirección' that approved the budget (v3.0.0: buyingSignal removed, tests sentiment Positivo discrimination with institutional commitment language).",
       "transcript": "Nuestra escuela de idiomas recibe cerca de 100 consultas semanales sobre cursos, niveles y precios. Queremos implementar Vambe en las próximas seis semanas para tener la automatización funcionando antes del próximo ciclo de matrículas. Ya lo presentamos a la dirección y aprobaron el presupuesto. Estamos interesados en avanzar — coordinemos el kickoff la semana próxima y vamos definiendo el cronograma.",
       "expected": {
         "industry": "Educación",
         "companySize": "PYME",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Muy Interesado",
+        "leadSource": "No Mencionado",
         "sentiment": "Positivo",
         "needsSummary": "Escuela de idiomas con 100 consultas semanales sobre cursos y precios. Presupuesto aprobado internamente. Compromiso explícito de implementación en seis semanas para tener automatización operativa antes del próximo ciclo de matrículas.",
         "nextSteps": "Coordinar kickoff la semana siguiente. Configurar base de conocimiento sobre cursos, niveles y precios. Acordar contrato y cronograma antes del arranque."
       },
-      "humanReasoning": "Educación (escuela de idiomas PYME por volumen 100/sem y operación local). Consultas repetitivas sobre cursos/niveles/precios → Volumen Repetitivo (default fuerte). 'lo presentamos a la dirección y aprobaron el presupuesto' = dirección separada del interlocutor + jerarquía corporativa explícita — interlocutor es mando medio, no dueño. Timeline explícito 'próximas seis semanas' → Corto (2-8 sem). Compromiso verbalizado: 'Estamos interesados en avanzar', 'coordinemos el kickoff' → Muy Interesado + Positivo."
+      "humanReasoning": "Educación (escuela de idiomas PYME por volumen 100/sem y operación local). Consultas repetitivas sobre cursos/niveles/precios → Volumen Repetitivo (default fuerte). 'lo presentamos a la dirección y aprobaron el presupuesto' = dirección separada del interlocutor + jerarquía corporativa explícita — interlocutor es mando medio, no dueño. Compromiso verbalizado: 'Estamos interesados en avanzar', 'coordinemos el kickoff' → Positivo (intención activa explícita con presupuesto aprobado). leadSource='No Mencionado' porque la transcripción no indica cómo llegaron a Vambe."
     },
     {
       "email": "adversarial-weak-01@example.com",
       "name": "[Synthetic] Consultancy Lukewarm",
       "synthetic": true,
-      "adversarialPurpose": "Tests Tibio buyingSignal frontier — distinct from Evaluando (descriptive) and Frío (blocking objection). Client expresses doubt without rejection. Fills the gap in the signal distribution.",
+      "adversarialPurpose": "Tests Neutro / Negativo frontier when client expresses doubt without explicit rejection — forces sentiment discrimination between lukewarm interest and outright rejection. Client has doubts but no blocking objection (v3.0.0: buyingSignal removed, this tests sentiment Neutro discrimination with doubt language).",
       "transcript": "Soy parte de una pequeña consultora de management y nos mencionaron Vambe en una reunión interna. Atendemos quizás 40 consultas semanales pero cada cliente es muy personalizado y la verdad no estamos convencidos de que una herramienta de automatización encaje con nuestro modelo. Quizás en el futuro veamos pero por ahora no es prioridad ni tenemos plazo definido para decidir. Honestamente no vemos una ventaja clara todavía.",
       "expected": {
         "industry": "Consultoría",
         "companySize": "PYME",
         "mainPainPoint": "Pérdida de Personalización",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Tibio",
+        "leadSource": "Recomendación",
         "sentiment": "Neutro",
         "needsSummary": "Pequeña consultora de management con 40 consultas semanales altamente personalizadas. No están convencidos de que la automatización encaje con su modelo. Dudas sin objeción bloqueante; conversación sin fecha de decisión.",
         "nextSteps": "Enviar caso de uso de consultora boutique donde la automatización respetó la personalización. Proponer seguimiento en tres meses sin agenda de venta activa."
       },
-      "humanReasoning": "Consultoría (pequeña consultora PYME). Pain: miedo anticipado a que automatización degrade la personalización artesanal del servicio ('cada cliente es muy personalizado') → Pérdida de Personalización (aplica la regla prompt-builder.ts:193 — miedo EXPLÍCITO a perder voz de marca al automatizar). 'Soy parte de una pequeña consultora' en firma profesional boutique (voz individual en empresa sin estructura jerárquica visible). Timeline: 'no tenemos plazo definido', 'quizás en el futuro' → Indefinido. Lenguaje Tibio distinto de Evaluando: 'no estamos convencidos', 'no vemos ventaja clara', 'no es prioridad' = dudas sin caso de uso definido per prompt-builder.ts:168 → Tibio (no Frío porque no hay objeción bloqueante; no Evaluando porque no describe positivamente la propuesta). Tono analítico-dudoso sin rechazo → Neutro."
+      "humanReasoning": "Consultoría (pequeña consultora PYME). Pain: miedo anticipado a que automatización degrade la personalización artesanal del servicio ('cada cliente es muy personalizado') → Pérdida de Personalización. 'Soy parte de una pequeña consultora' en firma profesional boutique (voz individual en empresa sin estructura jerárquica visible). Lenguaje dudoso: 'no estamos convencidos', 'no vemos ventaja clara', 'no es prioridad' = dudas sin caso de uso definido sin llegar a objeción bloqueante → Neutro (no Negativo porque no hay rechazo explícito; no Positivo porque no hay intención activa). leadSource='Recomendación' porque 'nos mencionaron Vambe en una reunión interna' es una recomendación de un colega en contexto interno."
     },
     {
       "email": "adversarial-rejection-01@example.com",
       "name": "[Synthetic] Real Estate Rejection",
       "synthetic": true,
-      "adversarialPurpose": "Tests Frío + Negativo frontier via explicit blocking objection. The only sample where the client will not proceed — forces the validator to assert the model identifies rejection signals.",
+      "adversarialPurpose": "Tests Negativo frontier via explicit blocking objection and rejection language — the only sample where the client will not proceed. Forces the model to identify rejection signals and assign Negativo sentiment vs the Neutro baseline (v3.0.0: buyingSignal removed, tests Negativo sentiment discrimination with compliance blocker).",
       "transcript": "Somos una inmobiliaria con operación en cuatro países. Ustedes nos presentaron Vambe pero francamente el tema de que no tengan certificaciones de protección de datos en dos de nuestras jurisdicciones es un bloqueo insalvable para nosotros. Nos están exigiendo compliance estricto desde legales y hasta que ustedes no resuelvan eso no hay forma de avanzar. Lamentablemente esto no va a prosperar en estas condiciones.",
       "expected": {
         "industry": "Real Estate",
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Compliance",
-        "buyingSignal": "Frío",
+        "leadSource": "Outbound",
         "sentiment": "Negativo",
         "needsSummary": "Inmobiliaria multi-país en cuatro jurisdicciones. Bloqueo insalvable: Vambe no tiene certificaciones de protección de datos en dos de las jurisdicciones. El equipo legal exige compliance estricto y la iniciativa no puede prosperar en estas condiciones.",
         "nextSteps": "Registrar objeción de compliance como bloqueador en el pipeline de producto. Mantener contacto con seguimiento trimestral sin presión comercial hasta que se resuelvan las certificaciones."
       },
-      "humanReasoning": "Real Estate (inmobiliaria Mid-market por operación multi-país). Sin pain específico verbalizado más allá del bloqueo → Volumen Repetitivo (default). Objeción EXPLÍCITA y bloqueante: 'no tengan certificaciones de protección de datos', 'nos están exigiendo compliance estricto' → Compliance. 'desde legales' + tono institucional sugiere mando intermedio con legales separados como departamento autónomo. Signal: 'bloqueo insalvable', 'no hay forma de avanzar', 'no va a prosperar' = objeción bloqueante no resuelta + desinterés forzado per prompt-builder.ts:169 → Frío (no Tibio porque hay objeción bloqueante; no Evaluando porque no describe positivamente la propuesta). Timeline: 'no hay forma de avanzar' → Indefinido. Tono: 'francamente', 'lamentablemente', frustración explícita → Negativo."
+      "humanReasoning": "Real Estate (inmobiliaria Mid-market por operación multi-país). Sin pain específico verbalizado más allá del bloqueo → Volumen Repetitivo (default). Objeción EXPLÍCITA y bloqueante: 'no tengan certificaciones de protección de datos', 'nos están exigiendo compliance estricto' → Compliance. 'desde legales' + tono institucional sugiere mando intermedio con legales separados como departamento autónomo. Signal: 'bloqueo insalvable', 'no hay forma de avanzar', 'no va a prosperar' = objeción bloqueante no resuelta + desinterés forzado → Sentimiento Negativo (frustración, rechazo explícito). Tono: 'francamente', 'lamentablemente' → Negativo. leadSource='Outbound' porque 'Ustedes nos presentaron Vambe' indica que Vambe inició el contacto (outbound por parte de Vambe)."
     },
     {
       "email": "adversarial-long-01@example.com",
       "name": "[Synthetic] Enterprise RFP",
       "synthetic": true,
-      "adversarialPurpose": "Tests Largo (2+ meses) timeline frontier combined with high commitment (Muy Interesado). Decouples timeline urgency from buying signal — a model that conflates long timeline with weak interest will fail here.",
+      "adversarialPurpose": "Tests Positivo + long evaluation cycle frontier — decouples evaluation timeline from sentiment. A model that conflates long process with weak/negative sentiment will fail here. Commitment is explicit ('Estamos interesados en implementar') despite a 3-4 month procurement cycle (v3.0.0: buyingSignal removed, tests Positivo sentiment discrimination when timeline is long).",
       "transcript": "Somos una compañía de software enterprise con más de 1000 interacciones semanales de soporte técnico a clientes B2B en cinco continentes. Estamos armando un RFP formal para modernizar toda nuestra infraestructura de atención y Vambe quedó como finalista. Estamos interesados en implementar pero el proceso de evaluación interna con compras, legales y seguridad nos va a llevar unos tres o cuatro meses mínimo. Esperamos arrancar la implementación en el tercer trimestre del año próximo.",
       "expected": {
         "industry": "Tecnología",
         "companySize": "Enterprise",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Muy Interesado",
+        "leadSource": "No Mencionado",
         "sentiment": "Positivo",
         "needsSummary": "Compañía enterprise con 1000+ interacciones semanales de soporte B2B en cinco continentes. Vambe es finalista en un RFP formal. Compromiso explícito de implementar, pero el ciclo de aprobación interno (compras, legales, seguridad) requiere tres a cuatro meses mínimo.",
         "nextSteps": "Responder RFP con documentación técnica y comercial completa. Coordinar sesiones con compras, legales y seguridad en los próximos meses. Alinear cronograma para go-live en el tercer trimestre del año próximo."
       },
-      "humanReasoning": "Tecnología (software enterprise). Enterprise por 1000+/sem y operación multi-continente per prompt-builder.ts:162. Volumen alto sin señales específicas de otras causas → Volumen Repetitivo (default). 'proceso de evaluación interna con compras, legales y seguridad' = comité explícito de múltiples áreas per prompt-builder.ts:182 → Comité. Signal: 'Estamos interesados en implementar' = frase canónica de Muy Interesado per prompt-builder.ts:166 + posición de finalista en RFP → Muy Interesado (NO Evaluando — el compromiso es explícito, solo el proceso es lento). Timeline: 'tres o cuatro meses mínimo', 'tercer trimestre del año próximo' = horizonte >2 meses explícito per prompt-builder.ts:154 → Largo (2+ meses). Sentiment: compromiso positivo, solo process-limited → Positivo. Sample diseñado para romper el acople 'timeline largo ⇒ signal débil' que un modelo tramposo podría aprender."
+      "humanReasoning": "Tecnología (software enterprise). Enterprise por 1000+/sem y operación multi-continente. Volumen alto sin señales específicas de otras causas → Volumen Repetitivo (default). 'proceso de evaluación interna con compras, legales y seguridad' = comité explícito de múltiples áreas. Signal: 'Estamos interesados en implementar' es compromiso explícito + posición de finalista en RFP → Positivo (NO Neutro — el compromiso es explícito, solo el proceso es lento). Sample diseñado para romper el acople 'timeline largo ⇒ sentimiento débil'. leadSource='No Mencionado' porque la transcripción no indica cómo llegaron a Vambe."
     }
   ]
 }

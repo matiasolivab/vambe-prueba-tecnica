@@ -7,6 +7,7 @@ import {
 } from "@/analytics/application/temporal-metrics";
 import { ClientsByMonthChart } from "@/analytics/ui/clients-by-month-chart";
 import { KpiTile } from "@/analytics/ui/kpi-tile";
+import { SellersConversionBarChart } from "@/analytics/ui/sellers-conversion-bar-chart";
 import {
   Card,
   CardContent,
@@ -36,13 +37,19 @@ export default async function DashboardOverviewPage({
   const { metricFilters } = await resolveDashboardFilters(searchParams);
   const calc = createMetricsCalculator();
   const temporal = createTemporalMetrics();
-  const [kpis, sellers, countMoM, topSeller, series] = await Promise.all([
-    calc.kpis(metricFilters),
-    getDashboardSellers(),
-    temporal.clientCountMoM(metricFilters),
-    temporal.topSellerByMonth(metricFilters),
-    temporal.clientsByMonth(metricFilters),
-  ]);
+  // The stacked bar chart splits closed vs open — applying filters.closed
+  // would flatten one series. Strip it locally (same pattern as the 12-month
+  // line chart above, which also ignores `closed`).
+  const conversionFilters = { ...metricFilters, closed: undefined };
+  const [kpis, sellers, countMoM, topSeller, series, conversion] =
+    await Promise.all([
+      calc.kpis(metricFilters),
+      getDashboardSellers(),
+      temporal.clientCountMoM(metricFilters),
+      temporal.topSellerByMonth(metricFilters),
+      temporal.clientsByMonth(metricFilters),
+      calc.sellerConversion(conversionFilters),
+    ]);
   const view = formatOverview({ kpis, countMoM, topSeller });
 
   return (
@@ -84,6 +91,43 @@ export default async function DashboardOverviewPage({
           </CardHeader>
           <CardContent>
             <ClientsByMonthChart data={series} />
+          </CardContent>
+        </Card>
+      </section>
+      <section aria-label="Conversión por vendedor" className="mt-6">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-row items-center justify-between gap-4">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-medium">
+                  Conversión por vendedor
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Largo = reuniones totales · color = cerradas vs abiertas
+                </p>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{ background: "#fbbf24" }}
+                  />
+                  Cerradas
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{ background: "#22d3ee" }}
+                  />
+                  Abiertas
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <SellersConversionBarChart data={conversion} />
           </CardContent>
         </Card>
       </section>

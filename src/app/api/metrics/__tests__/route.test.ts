@@ -22,40 +22,35 @@ describe.skipIf(!hasDbUrl)("GET /api/metrics (integration)", () => {
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
-      kpis: unknown;
+      kpis: Record<string, unknown>;
       sellers: unknown;
-      closeRateBy: Record<string, unknown>;
       sellerByIndustry: unknown;
-      objections: unknown;
+      clientsByMonth: unknown;
+      clientCountMoM: unknown;
+      topSellerByMonth: unknown;
     };
 
     expect(body.kpis).toBeDefined();
     expect(Array.isArray(body.sellers)).toBe(true);
-    expect(body.closeRateBy).toBeDefined();
     expect(Array.isArray(body.sellerByIndustry)).toBe(true);
-    expect(body.objections).toBeDefined();
-  });
 
-  it("closeRateBy contains all 6 expected dimensions", async () => {
-    const req = new NextRequest("http://localhost/api/metrics");
-    const res = await GET(req);
-    const body = (await res.json()) as {
-      closeRateBy: Record<string, unknown>;
-    };
+    expect(body).toHaveProperty("clientsByMonth");
+    expect(Array.isArray(body.clientsByMonth)).toBe(true);
 
-    expect(Object.keys(body.closeRateBy).sort()).toEqual(
-      [
-        "buyingSignal",
-        "companySize",
-        "decisionMakerRole",
-        "industry",
-        "purchaseTimeline",
-        "sentiment",
-      ].sort(),
-    );
-    for (const dim of Object.values(body.closeRateBy)) {
-      expect(Array.isArray(dim)).toBe(true);
-    }
+    expect(body).toHaveProperty("clientCountMoM");
+    expect(body.clientCountMoM).toMatchObject({
+      current: expect.any(Number),
+      previous: expect.any(Number),
+      referenceYearMonth: expect.any(String),
+    });
+
+    expect(body).toHaveProperty("topSellerByMonth");
+
+    // Legacy shape must be gone entirely.
+    expect(body).not.toHaveProperty("closeRateBy");
+    expect(body).not.toHaveProperty("objections");
+    expect(body.kpis).not.toHaveProperty("closeRate");
+    expect(body.kpis).not.toHaveProperty("topSeller");
   });
 
   it("accepts a filter query and narrows the KPI total", async () => {

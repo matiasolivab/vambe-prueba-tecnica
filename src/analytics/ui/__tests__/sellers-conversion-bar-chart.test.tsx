@@ -24,7 +24,10 @@ vi.mock("recharts", async () => {
   return { ...actual, ResponsiveContainer };
 });
 
-import { SellersConversionBarChart } from "@/analytics/ui/sellers-conversion-bar-chart";
+import {
+  CustomTooltip,
+  SellersConversionBarChart,
+} from "@/analytics/ui/sellers-conversion-bar-chart";
 
 const sampleData: readonly SellerConversion[] = [
   {
@@ -62,5 +65,39 @@ describe("SellersConversionBarChart", () => {
     expect(screen.getAllByText("Toro").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Puma").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Lobo").length).toBeGreaterThan(0);
+  });
+
+  it("custom tooltip renders seller, totals, and close rate lines", () => {
+    const row: SellerConversion = {
+      seller: "Ana",
+      totalClients: 10,
+      closedClients: 4,
+      openClients: 6,
+      closeRate: 0.4,
+    };
+    render(
+      <CustomTooltip
+        active
+        payload={[
+          {
+            value: row.closedClients,
+            name: "closedClients",
+            dataKey: "closedClients",
+            payload: row,
+          },
+        ]}
+        label={row.seller}
+      />,
+    );
+    expect(screen.getByText("Ana")).toBeInTheDocument();
+    expect(screen.getByText(/10 reuniones · 4 cerradas/)).toBeInTheDocument();
+    expect(screen.getByText(/40% close rate/)).toBeInTheDocument();
+  });
+
+  it("custom tooltip returns null when inactive", () => {
+    const { container } = render(
+      <CustomTooltip active={false} payload={[]} />,
+    );
+    expect(container.firstChild).toBeNull();
   });
 });

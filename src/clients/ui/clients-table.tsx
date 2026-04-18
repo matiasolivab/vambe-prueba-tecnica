@@ -54,9 +54,6 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                 Tamaño
               </TableHead>
               <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
-                Rol decisor
-              </TableHead>
-              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Estado
               </TableHead>
               <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
@@ -102,7 +99,6 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                 <TableCell>{c.assignedSeller}</TableCell>
                 <TableCell>{c.industry ?? "—"}</TableCell>
                 <TableCell>{c.companySize ?? "—"}</TableCell>
-                <TableCell>{c.decisionMakerRole ?? "—"}</TableCell>
                 <TableCell>
                   <ClosedBadge closed={c.closed} />
                 </TableCell>

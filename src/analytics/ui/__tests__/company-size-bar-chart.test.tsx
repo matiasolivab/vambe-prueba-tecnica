@@ -4,9 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { CompanySizeCount } from "@/analytics/application/metrics-calculator";
 
-// Mirror the Recharts mock pattern from clients-by-month-chart.test.tsx.
-// ResponsiveContainer measures layout via ResizeObserver which is not
-// available in JSDOM — replace it with a passthrough that forces fixed dims.
 vi.mock("recharts", async () => {
   const actual =
     await vi.importActual<typeof import("recharts")>("recharts");
@@ -41,10 +38,8 @@ describe("CompanySizeBarChart", () => {
 
   it("maps PYME raw key to PyME display name", () => {
     render(<CompanySizeBarChart data={sampleData} />);
-    // Recharts YAxis renders the display name as text ticks (may appear multiple times)
     const pymeElements = screen.getAllByText("PyME");
     expect(pymeElements.length).toBeGreaterThan(0);
-    // Raw "PYME" should NOT appear as a text node
     expect(screen.queryByText("PYME")).not.toBeInTheDocument();
   });
 

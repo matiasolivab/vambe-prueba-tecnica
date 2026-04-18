@@ -128,7 +128,6 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
     const email = "test-stable-id@example.com";
     const first = await repo.upsertByEmail(baseClient({ email }));
 
-    // Small delay so updatedAt is measurably greater (now() resolution).
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     const second = await repo.upsertByEmail(

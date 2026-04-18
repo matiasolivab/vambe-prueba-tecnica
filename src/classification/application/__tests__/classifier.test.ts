@@ -223,7 +223,7 @@ describe("TranscriptClassifier", () => {
       await classifier.classify(task());
       throw new Error("should have thrown");
     } catch (e) {
-      expect(e).toBe(err); // same instance — no wrap
+      expect(e).toBe(err);
     }
   });
 
@@ -268,7 +268,7 @@ describe("TranscriptClassifier", () => {
     } catch (e) {
       expect(e).toBeInstanceOf(ClassificationFailedError);
       if (!(e instanceof ClassificationFailedError)) throw e;
-      expect(e).not.toBe(thrown); // new instance, because re-wrapped
+      expect(e).not.toBe(thrown);
       expect(e.email).toBe("alice@example.com");
       expect(e.message).toBe("OpenAI failed");
       expect(e.cause).toBe(cause);

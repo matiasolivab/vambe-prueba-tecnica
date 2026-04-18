@@ -36,7 +36,6 @@ describe("ClientsTable", () => {
         screen.getByRole("columnheader", { name: header }),
       ).toBeInTheDocument();
     }
-    // Removed columns must not appear (previous schema iterations)
     expect(
       screen.queryByRole("columnheader", { name: "Rol decisor" }),
     ).not.toBeInTheDocument();
@@ -83,7 +82,6 @@ describe("ClientsTable", () => {
     ];
     render(<ClientsTable initialClients={clients} />);
 
-    // modal not open initially
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await user.click(screen.getByText("Clic Target"));
@@ -107,24 +105,20 @@ describe("ClientsTable", () => {
     );
     render(<ClientsTable initialClients={clients} pageSize={2} />);
 
-    // Page 1: clients 1 and 2 visible, 3+ hidden
     expect(screen.getByText("Cliente 1")).toBeInTheDocument();
     expect(screen.getByText("Cliente 2")).toBeInTheDocument();
     expect(screen.queryByText("Cliente 3")).not.toBeInTheDocument();
     expect(screen.getByText(/página 1 de 3/i)).toBeInTheDocument();
     expect(screen.getByText(/mostrando 1–2 de 5/i)).toBeInTheDocument();
 
-    // Previous disabled on page 1
     const prev = screen.getByRole("button", { name: /página anterior/i });
     expect(prev).toBeDisabled();
 
-    // Go to page 2
     await user.click(screen.getByRole("button", { name: /página siguiente/i }));
     expect(screen.getByText("Cliente 3")).toBeInTheDocument();
     expect(screen.getByText("Cliente 4")).toBeInTheDocument();
     expect(screen.queryByText("Cliente 1")).not.toBeInTheDocument();
 
-    // Go to page 3 (last) — Next gets disabled
     await user.click(screen.getByRole("button", { name: /página siguiente/i }));
     expect(screen.getByText("Cliente 5")).toBeInTheDocument();
     expect(

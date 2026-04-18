@@ -76,7 +76,6 @@ describe("SellersConversionBarChart", () => {
       (row) =>
         row.querySelector<HTMLElement>('[data-testid="seller-bar-outer"]')!,
     );
-    // Max is Juan (30) → 100%. Ana (15) → 50%. María (18) → 60%.
     expect(outers[0]!.style.width).toBe("100%");
     expect(outers[1]!.style.width).toBe("50%");
     expect(outers[2]!.style.width).toBe("60%");

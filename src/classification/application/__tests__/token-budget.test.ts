@@ -25,7 +25,7 @@ const clock = new FixedClock(new Date("2026-04-16T10:00:00.000Z"));
 
 describe("TokenBudgetService", () => {
   const DEFAULT_MARKER = "\n\n[...TRUNCATED...]\n\n";
-  const MARKER_TOKENS = DEFAULT_MARKER.length; // 22 with FakeTokenizer
+  const MARKER_TOKENS = DEFAULT_MARKER.length;
 
   let tokenizer: FakeTokenizer;
   let lines: string[];
@@ -86,9 +86,9 @@ describe("TokenBudgetService", () => {
 
     const result = service.fit(head + tail);
 
-    const usable = 1000 - MARKER_TOKENS; // 978
-    const headCount = Math.floor(0.7 * usable); // 684
-    const tailCount = Math.floor(0.3 * usable); // 293
+    const usable = 1000 - MARKER_TOKENS;
+    const headCount = Math.floor(0.7 * usable);
+    const tailCount = Math.floor(0.3 * usable);
 
     const expected = "H".repeat(headCount) + DEFAULT_MARKER + "T".repeat(tailCount);
 
@@ -143,7 +143,7 @@ describe("TokenBudgetService", () => {
 
   it("truncates multi-byte Unicode input without breaking encoding", () => {
     const service = new TokenBudgetService(tokenizer, logger, 1000);
-    const text = "áéíóú".repeat(500); // 2500 code points
+    const text = "áéíóú".repeat(500);
 
     const result = service.fit(text);
 

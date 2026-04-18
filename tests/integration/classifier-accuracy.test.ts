@@ -194,7 +194,6 @@ describe.skipIf(!RUN_GT)(
         it(`${dimension} ≥ ${ACCURACY_THRESHOLD * 100}%`, () => {
           expect(runs.length).toBeGreaterThan(0);
           const { rate, matches, total } = computeAccuracy(dimension, runs);
-          // Attach context via the assertion message for easier triage on fail.
           expect(
             rate,
             `accuracy=${(rate * 100).toFixed(1)}% (${matches}/${total}); misses: ${misses(dimension, runs).join(" | ") || "none"}`,

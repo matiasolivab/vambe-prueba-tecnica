@@ -137,7 +137,6 @@ describe("UploadButton", () => {
       expect(screen.getByText(/csv inválido/i)).toBeInTheDocument(),
     );
     expect(screen.getByText(/^faltan columnas:?$/i)).toBeInTheDocument();
-    // The missing column name "email" is rendered as a list item chip.
     const chips = screen.getAllByText(/^email$/i);
     expect(chips.length).toBeGreaterThan(0);
     expect(refreshMock).not.toHaveBeenCalled();

@@ -33,7 +33,7 @@ describe("parseSseEvents", () => {
   it("keeps an incomplete trailing block in the remainder", () => {
     const buf =
       "event: progress\ndata: 1\n\n" +
-      "event: progress\ndata: 2"; // no trailing \n\n
+      "event: progress\ndata: 2";
     const { events, remainder } = parseSseEvents(buf);
     expect(events).toEqual([{ event: "progress", data: "1" }]);
     expect(remainder).toBe("event: progress\ndata: 2");

@@ -43,7 +43,6 @@ describe("PainPointsMatrix", () => {
     expect(
       screen.getByText("Sin datos de pain points"),
     ).toBeInTheDocument();
-    // No count cells rendered
     expect(screen.queryByText("42")).not.toBeInTheDocument();
   });
 });

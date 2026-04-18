@@ -29,7 +29,6 @@ describe("FiltersBar", () => {
     render(<FiltersBar sellers={SELLERS} />);
 
     expect(screen.getByRole("button", { name: /filtros/i })).toBeInTheDocument();
-    // Selects are hidden until the popover opens.
     expect(screen.queryByLabelText(/vendedor/i)).not.toBeInTheDocument();
   });
 

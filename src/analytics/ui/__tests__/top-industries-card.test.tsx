@@ -4,9 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { IndustryCount } from "@/analytics/application/metrics-calculator";
 
-// Mirror the Recharts mock used by the other chart tests — ResponsiveContainer
-// measures layout via ResizeObserver which JSDOM doesn't provide, so we
-// replace it with a passthrough that forces fixed dimensions.
 vi.mock("recharts", async () => {
   const actual =
     await vi.importActual<typeof import("recharts")>("recharts");

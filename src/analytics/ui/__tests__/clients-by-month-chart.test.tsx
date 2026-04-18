@@ -4,11 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { MonthlyClientsPoint } from "@/analytics/application/temporal-metrics";
 
-// Recharts measures layout off ResponsiveContainer; in JSDOM that yields a
-// 0x0 chart which never renders axes, lines, or legend. Swap it for a
-// passthrough that forces `width` + `height` straight onto the chart child,
-// bypassing the size-hook dance. This mirrors the approach used by the
-// Recharts maintainers in their own JSDOM integration tests.
 vi.mock("recharts", async () => {
   const actual =
     await vi.importActual<typeof import("recharts")>("recharts");
@@ -32,7 +27,6 @@ describe("ClientsByMonthChart", () => {
   it("renders an empty-state message when the series is empty", () => {
     render(<ClientsByMonthChart data={[]} />);
     expect(screen.getByText(/sin datos/i)).toBeInTheDocument();
-    // No SVG lines when empty.
     expect(document.querySelector("svg")).toBeNull();
   });
 
@@ -52,7 +46,6 @@ describe("ClientsByMonthChart", () => {
       { yearMonth: "2026-04", closed: 5, open: 3 },
     ]);
     render(<ClientsByMonthChart data={data} />);
-    // The tick formatter should output e.g. "Abr '26" for the last bucket.
     expect(screen.getByText("Abr '26")).toBeInTheDocument();
   });
 });

@@ -385,6 +385,13 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     );
   });
 
+  it("sellerConversion returns [] when filters match 0 rows", async () => {
+    const rows = await calc.sellerConversion({
+      assignedSeller: "__NO_SUCH_SELLER__",
+    });
+    expect(rows).toEqual([]);
+  });
+
   it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);

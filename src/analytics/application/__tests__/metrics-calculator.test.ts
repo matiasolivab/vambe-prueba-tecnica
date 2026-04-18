@@ -329,6 +329,31 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     expect(pairs).toContain("Lobo|Tecnología");
   });
 
+  it("sellerConversion returns rows sorted by totalClients DESC and includes fixture sellers with correct shape", async () => {
+    const rows = await calc.sellerConversion();
+    // Ordering invariant: totalClients DESC.
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i - 1]!.totalClients).toBeGreaterThanOrEqual(
+        rows[i]!.totalClients,
+      );
+    }
+    // Fixture presence.
+    const sellers = rows.map((r) => r.seller);
+    expect(sellers).toContain("Toro");
+    expect(sellers).toContain("Puma");
+    expect(sellers).toContain("Lobo");
+    // Shape per row.
+    for (const r of rows) {
+      expect(typeof r.seller).toBe("string");
+      expect(typeof r.totalClients).toBe("number");
+      expect(typeof r.closedClients).toBe("number");
+      expect(typeof r.openClients).toBe("number");
+      expect(typeof r.closeRate).toBe("number");
+      expect(r.closeRate).toBeGreaterThanOrEqual(0);
+      expect(r.closeRate).toBeLessThanOrEqual(1);
+    }
+  });
+
   it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);

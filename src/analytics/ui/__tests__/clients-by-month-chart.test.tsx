@@ -1,20 +1,29 @@
 import { render, screen } from "@testing-library/react";
+import { cloneElement, isValidElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { MonthlyClientsPoint } from "@/analytics/application/temporal-metrics";
 
 // Recharts measures layout off ResponsiveContainer; in JSDOM that yields a
-// 0x0 SVG which never renders axes or lines. Swap it for a fixed-size wrapper
-// so every <Line>, <Legend> and <XAxis tick> actually lands in the DOM.
+// 0x0 chart which never renders axes, lines, or legend. Swap it for a
+// passthrough that forces `width` + `height` straight onto the chart child,
+// bypassing the size-hook dance. This mirrors the approach used by the
+// Recharts maintainers in their own JSDOM integration tests.
 vi.mock("recharts", async () => {
   const actual =
     await vi.importActual<typeof import("recharts")>("recharts");
-  return {
-    ...actual,
-    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
-      <div style={{ width: 400, height: 320 }}>{children}</div>
-    ),
+  const ResponsiveContainer = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }): React.ReactElement | null => {
+    if (!isValidElement(children)) return null;
+    return cloneElement(
+      children as React.ReactElement<{ width?: number; height?: number }>,
+      { width: 500, height: 320 },
+    );
   };
+  return { ...actual, ResponsiveContainer };
 });
 
 import { ClientsByMonthChart } from "@/analytics/ui/clients-by-month-chart";

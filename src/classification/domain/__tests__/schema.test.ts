@@ -7,28 +7,24 @@ import {
   COMPANY_SIZES,
   MAIN_PAIN_POINTS,
   KEY_OBJECTIONS,
-  PURCHASE_TIMELINES,
   BUYING_SIGNALS,
-  DECISION_MAKER_ROLES,
   SENTIMENTS,
   type Classification,
 } from "../schema";
 
 const validFixture: Classification = {
   reasoning:
-    "El cliente opera en servicios financieros, equipo saturado por volumen repetitivo; CEO confirma urgencia.",
+    "El cliente opera en servicios financieros, equipo saturado por volumen repetitivo.",
   industry: "Servicios Financieros",
   companySize: "PYME",
   mainPainPoint: "Volumen Repetitivo",
   keyObjection: "Ninguna",
-  purchaseTimeline: "Urgente (<2 sem)",
   buyingSignal: "Muy Interesado",
-  decisionMakerRole: "CEO/Fundador",
   sentiment: "Positivo",
   needsSummary:
-    "El cliente necesita automatizar la atencion de consultas repetitivas en horarios pico, integrar el chatbot con su CRM actual y mantener un tono humano para preservar la marca. Busca reducir el tiempo de respuesta y liberar al equipo para casos complejos que requieren criterio experto.",
+    "El cliente necesita automatizar la atencion de consultas repetitivas en horarios pico, integrar el chatbot con su CRM actual y mantener un tono humano para preservar la marca.",
   nextSteps:
-    "Agendar demo tecnica con el equipo de integraciones la proxima semana y enviar propuesta comercial con pricing por volumen de consultas mensuales.",
+    "Agendar demo tecnica con el equipo de integraciones la proxima semana y enviar propuesta comercial.",
 };
 
 describe("ClassificationSchema (Zod)", () => {
@@ -65,13 +61,23 @@ describe("ClassificationSchema (Zod)", () => {
     expect(() => ClassificationSchema.parse(bad)).toThrow(ZodError);
   });
 
-  it("rejects needsSummary shorter than 50 characters", () => {
+  it("rejects needsSummary shorter than 20 characters", () => {
     const bad = { ...validFixture, needsSummary: "demasiado corto" };
     expect(() => ClassificationSchema.parse(bad)).toThrow(ZodError);
   });
 
-  it("rejects nextSteps shorter than 20 characters", () => {
+  it("rejects nextSteps shorter than 10 characters", () => {
     const bad = { ...validFixture, nextSteps: "corto" };
+    expect(() => ClassificationSchema.parse(bad)).toThrow(ZodError);
+  });
+
+  it("rejects needsSummary longer than 600 characters", () => {
+    const bad = { ...validFixture, needsSummary: "a".repeat(701) };
+    expect(() => ClassificationSchema.parse(bad)).toThrow(ZodError);
+  });
+
+  it("rejects nextSteps longer than 450 characters", () => {
+    const bad = { ...validFixture, nextSteps: "a".repeat(501) };
     expect(() => ClassificationSchema.parse(bad)).toThrow(ZodError);
   });
 
@@ -100,21 +106,9 @@ describe("ClassificationSchema (Zod)", () => {
       ]);
     });
 
-    it("purchaseTimeline enum options equal PURCHASE_TIMELINES", () => {
-      expect(ClassificationSchema.shape.purchaseTimeline.options).toEqual([
-        ...PURCHASE_TIMELINES,
-      ]);
-    });
-
     it("buyingSignal enum options equal BUYING_SIGNALS", () => {
       expect(ClassificationSchema.shape.buyingSignal.options).toEqual([
         ...BUYING_SIGNALS,
-      ]);
-    });
-
-    it("decisionMakerRole enum options equal DECISION_MAKER_ROLES", () => {
-      expect(ClassificationSchema.shape.decisionMakerRole.options).toEqual([
-        ...DECISION_MAKER_ROLES,
       ]);
     });
 
@@ -131,9 +125,6 @@ describe("ClassificationSchema (Zod)", () => {
     });
     it("keyObjection includes 'Ninguna'", () => {
       expect(KEY_OBJECTIONS).toContain("Ninguna");
-    });
-    it("purchaseTimeline includes 'Indefinido'", () => {
-      expect(PURCHASE_TIMELINES).toContain("Indefinido");
     });
   });
 

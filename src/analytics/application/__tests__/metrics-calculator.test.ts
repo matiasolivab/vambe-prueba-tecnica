@@ -404,6 +404,26 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     }
   });
 
+  it("sellerConversion computes closeRate edge cases correctly", async () => {
+    const all = await calc.sellerConversion();
+    // Lobo fixture: 1 client, not closed → closeRate = 0. Lobo may appear
+    // together with seed rows for the same seller; we assert invariants that
+    // hold regardless of seed distribution.
+    const lobo = all.find((r) => r.seller === "Lobo");
+    expect(lobo).toBeDefined();
+    if (lobo) {
+      expect(lobo.closeRate).toBeGreaterThanOrEqual(0);
+      expect(lobo.closeRate).toBeLessThanOrEqual(1);
+      expect(lobo.openClients).toBe(lobo.totalClients - lobo.closedClients);
+      if (lobo.totalClients > 0) {
+        expect(lobo.closeRate).toBeCloseTo(
+          lobo.closedClients / lobo.totalClients,
+          5,
+        );
+      }
+    }
+  });
+
   it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);

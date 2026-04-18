@@ -75,11 +75,13 @@ export const KEY_OBJECTIONS = [
   "Ninguna",
 ] as const;
 
-export const BUYING_SIGNALS = [
-  "Muy Interesado",
-  "Evaluando",
-  "Tibio",
-  "Frío",
+export const LEAD_SOURCES = [
+  "Búsqueda Online",
+  "Recomendación",
+  "Publicidad",
+  "Outbound",
+  "Otros",
+  "No Mencionado",
 ] as const;
 
 export const SENTIMENTS = ["Positivo", "Neutro", "Negativo"] as const;
@@ -94,7 +96,7 @@ export const ClassificationSchema = z
     companySize: z.enum(COMPANY_SIZES),
     mainPainPoint: z.enum(MAIN_PAIN_POINTS),
     keyObjection: z.enum(KEY_OBJECTIONS),
-    buyingSignal: z.enum(BUYING_SIGNALS),
+    leadSource: z.enum(LEAD_SOURCES),
     sentiment: z.enum(SENTIMENTS),
 
     // 7–8. Qualitative free text (PRD §7.2). Word count is instructed in

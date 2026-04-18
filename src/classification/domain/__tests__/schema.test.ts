@@ -7,7 +7,7 @@ import {
   COMPANY_SIZES,
   MAIN_PAIN_POINTS,
   KEY_OBJECTIONS,
-  BUYING_SIGNALS,
+  LEAD_SOURCES,
   SENTIMENTS,
   type Classification,
 } from "../schema";
@@ -19,7 +19,7 @@ const validFixture: Classification = {
   companySize: "PYME",
   mainPainPoint: "Volumen Repetitivo",
   keyObjection: "Ninguna",
-  buyingSignal: "Muy Interesado",
+  leadSource: "No Mencionado",
   sentiment: "Positivo",
   needsSummary:
     "El cliente necesita automatizar la atencion de consultas repetitivas en horarios pico, integrar el chatbot con su CRM actual y mantener un tono humano para preservar la marca.",
@@ -106,9 +106,9 @@ describe("ClassificationSchema (Zod)", () => {
       ]);
     });
 
-    it("buyingSignal enum options equal BUYING_SIGNALS", () => {
-      expect(ClassificationSchema.shape.buyingSignal.options).toEqual([
-        ...BUYING_SIGNALS,
+    it("leadSource enum options equal LEAD_SOURCES", () => {
+      expect(ClassificationSchema.shape.leadSource.options).toEqual([
+        ...LEAD_SOURCES,
       ]);
     });
 
@@ -125,6 +125,12 @@ describe("ClassificationSchema (Zod)", () => {
     });
     it("keyObjection includes 'Ninguna'", () => {
       expect(KEY_OBJECTIONS).toContain("Ninguna");
+    });
+    it("leadSource includes 'Otros' (channel mentioned but undefined)", () => {
+      expect(LEAD_SOURCES).toContain("Otros");
+    });
+    it("leadSource includes 'No Mencionado' (channel silent)", () => {
+      expect(LEAD_SOURCES).toContain("No Mencionado");
     });
   });
 

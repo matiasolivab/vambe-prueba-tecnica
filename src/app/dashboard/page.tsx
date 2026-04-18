@@ -55,7 +55,7 @@ export default async function DashboardOverviewPage({
       calc.sellerConversion(conversionFilters),
       calc.painPointCounts(metricFilters),
       calc.companySizeDistribution(metricFilters),
-      calc.topIndustries(metricFilters),
+      calc.topIndustries(metricFilters, 100),
     ]);
   const view = formatOverview({ kpis, countMoM, topSeller });
 
@@ -72,19 +72,19 @@ export default async function DashboardOverviewPage({
         className="grid grid-cols-1 gap-4 md:grid-cols-3"
       >
         <KpiTile
-          label="Total de clientes"
+          label="¿Cuántos clientes tenemos?"
           value={countMoM.current}
           caption={view.totalCaption}
           delta={view.totalDelta}
         />
         <KpiTile
-          label="Mejor vendedor del mes"
+          label="¿Quién vende más este mes?"
           value={view.topSellerValue}
           caption={view.topSellerCaption}
           highlight="amber"
         />
         <KpiTile
-          label="Pain point más común"
+          label="¿Cuál es el dolor principal?"
           value={view.topPainPointValue}
           caption={view.topPainPointCaption}
         />
@@ -96,7 +96,7 @@ export default async function DashboardOverviewPage({
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
-              Clientes cerrados vs abiertos — últimos 12 meses
+              ¿Cómo evoluciona el pipeline?
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -108,7 +108,7 @@ export default async function DashboardOverviewPage({
             <div className="flex flex-row items-center justify-between gap-4">
               <div className="space-y-1">
                 <CardTitle className="text-sm font-medium">
-                  Conversión por vendedor
+                  ¿Qué vendedor cierra mejor?
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
                   Volumen de reuniones y tasa de cierre de cada vendedor
@@ -140,32 +140,24 @@ export default async function DashboardOverviewPage({
         </Card>
       </section>
 
-      <section aria-label="Pains más frecuentes" className="mt-6">
-        <div className="mb-3">
-          <h2 className="text-sm font-medium text-zinc-50">
-            Pains más frecuentes
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Frecuencia de menciones agrupadas por tipo de dolor.
-          </p>
-        </div>
-        <PainPointsMatrix data={painCounts} />
-      </section>
-
       <section
-        aria-label="Composición de cartera"
+        aria-label="Pains y tamaño de empresa"
         className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2"
       >
+        <PainPointsMatrix data={painCounts} />
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
-              Tamaño de empresa
+              ¿A qué tamaño de empresa vendemos?
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             <CompanySizeBarChart data={sizeCounts} />
           </CardContent>
         </Card>
+      </section>
+
+      <section aria-label="Industrias principales" className="mt-6">
         <TopIndustriesCard data={topInd} />
       </section>
     </>

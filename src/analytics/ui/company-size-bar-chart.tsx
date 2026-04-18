@@ -38,31 +38,33 @@ export function CompanySizeBarChart({ data }: Props) {
     .map((d) => ({ ...d, displayName: displayName(d.companySize) }));
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <BarChart layout="vertical" data={sorted}>
-        <XAxis
-          type="number"
-          tick={{ fill: "#d4d4d8", fontSize: 12 }}
-          stroke="#3f3f46"
-        />
-        <YAxis
-          type="category"
-          dataKey="displayName"
-          width={110}
-          tick={{ fill: "#d4d4d8", fontSize: 12 }}
-          stroke="#3f3f46"
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.5rem",
-            color: "var(--popover-foreground)",
-            fontSize: "0.8125rem",
-          }}
-        />
-        <Bar dataKey="count" fill="#22d3ee" radius={[0, 4, 4, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="h-full min-h-[220px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart layout="vertical" data={sorted}>
+          <XAxis
+            type="number"
+            tick={{ fill: "#d4d4d8", fontSize: 12 }}
+            stroke="#3f3f46"
+          />
+          <YAxis
+            type="category"
+            dataKey="displayName"
+            width={110}
+            tick={{ fill: "#d4d4d8", fontSize: 12 }}
+            stroke="#3f3f46"
+          />
+          <Tooltip
+            contentStyle={{
+              background: "var(--popover)",
+              border: "1px solid var(--border)",
+              borderRadius: "0.5rem",
+              color: "var(--popover-foreground)",
+              fontSize: "0.8125rem",
+            }}
+          />
+          <Bar dataKey="count" fill="#22d3ee" radius={[0, 4, 4, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

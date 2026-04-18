@@ -1,50 +1,57 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cloneElement, isValidElement } from "react";
+import { describe, expect, it, vi } from "vitest";
 
 import type { IndustryCount } from "@/analytics/application/metrics-calculator";
+
+// Mirror the Recharts mock used by the other chart tests — ResponsiveContainer
+// measures layout via ResizeObserver which JSDOM doesn't provide, so we
+// replace it with a passthrough that forces fixed dimensions.
+vi.mock("recharts", async () => {
+  const actual =
+    await vi.importActual<typeof import("recharts")>("recharts");
+  const ResponsiveContainer = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }): React.ReactElement | null => {
+    if (!isValidElement(children)) return null;
+    return cloneElement(
+      children as React.ReactElement<{ width?: number; height?: number }>,
+      { width: 800, height: 320 },
+    );
+  };
+  return { ...actual, ResponsiveContainer };
+});
+
 import { TopIndustriesCard } from "@/analytics/ui/top-industries-card";
 
-const twoItems: readonly IndustryCount[] = [
+const sampleData: readonly IndustryCount[] = [
   { industry: "Tecnología", count: 25 },
   { industry: "Salud", count: 12 },
+  { industry: "Educación", count: 8 },
+  { industry: "Logística", count: 4 },
 ];
 
-const oneItem: readonly IndustryCount[] = [{ industry: "Tecnología", count: 25 }];
-
 describe("TopIndustriesCard", () => {
-  it("renders card title", () => {
-    render(<TopIndustriesCard data={twoItems} />);
-    expect(screen.getByText("Industrias principales")).toBeInTheDocument();
+  it("renders the card title as a short question", () => {
+    render(<TopIndustriesCard data={sampleData} />);
+    expect(
+      screen.getByText(/¿qué industrias se interesan más por nosotros\?/i),
+    ).toBeInTheDocument();
   });
 
-  it("renders Principal and Secundaria labels with correct industry names and counts", () => {
-    render(<TopIndustriesCard data={twoItems} />);
-
-    expect(screen.getByText("Principal")).toBeInTheDocument();
-    expect(screen.getByText("Tecnología")).toBeInTheDocument();
-    expect(screen.getByText("25")).toBeInTheDocument();
-
-    expect(screen.getByText("Secundaria")).toBeInTheDocument();
-    expect(screen.getByText("Salud")).toBeInTheDocument();
-    expect(screen.getByText("12")).toBeInTheDocument();
+  it("renders an SVG bar chart with all industry names on the X axis", () => {
+    render(<TopIndustriesCard data={sampleData} />);
+    expect(document.querySelector("svg")).not.toBeNull();
+    for (const { industry } of sampleData) {
+      expect(screen.getAllByText(industry).length).toBeGreaterThan(0);
+    }
   });
 
-  it("shows N/A for Secundaria when only 1 item provided", () => {
-    render(<TopIndustriesCard data={oneItem} />);
-
-    // Principal is present
-    expect(screen.getByText("Tecnología")).toBeInTheDocument();
-
-    // Secundaria falls back
-    const naElements = screen.getAllByText("N/A");
-    expect(naElements.length).toBeGreaterThan(0);
-  });
-
-  it("shows N/A for both rows when data is []", () => {
+  it("renders the empty state when data is []", () => {
     render(<TopIndustriesCard data={[]} />);
-
-    const naElements = screen.getAllByText("N/A");
-    // Both Principal and Secundaria should show N/A
-    expect(naElements.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/sin datos de industrias/i)).toBeInTheDocument();
+    expect(document.querySelector("svg")).toBeNull();
   });
 });

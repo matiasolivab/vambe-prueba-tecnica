@@ -43,9 +43,9 @@ export function ClientsByMonthChart({ data }: ClientsByMonthChartProps) {
     <section
       role="region"
       aria-label="Clientes cerrados vs abiertos en los últimos 12 meses"
-      className="h-80 w-full"
+      className="h-60 w-full"
     >
-      <ResponsiveContainer width="100%" height={320}>
+      <ResponsiveContainer width="100%" height={240}>
         <LineChart
           data={[...data]}
           margin={{ top: 8, right: 16, bottom: 8, left: -8 }}

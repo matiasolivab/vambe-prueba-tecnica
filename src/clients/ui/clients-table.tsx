@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { ClientDetailModal } from "@/clients/ui/client-detail-modal";
 import type { Client } from "@/clients/infrastructure/db/schema";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -17,17 +19,41 @@ import { cn } from "@/lib/utils";
 
 export interface ClientsTableProps {
   readonly initialClients: readonly Client[];
+  readonly pageSize?: number;
 }
+
+const DEFAULT_PAGE_SIZE = 20;
 
 /**
  * Clients list (§8.5). Pure Client Component — parent Server wrapper fetches
  * `findAll()` and hands the rows in via `initialClients`. Local state tracks
  * the selected row; clicking any cell opens the drill-down modal.
  *
- * Filters/search/sort are out of scope for 7.4 (see 7.6).
+ * Pagination is client-side (server already loaded the whole page's worth of
+ * data). Page size is configurable via prop — defaults to {@link DEFAULT_PAGE_SIZE}.
  */
-export function ClientsTable({ initialClients }: ClientsTableProps) {
+export function ClientsTable({
+  initialClients,
+  pageSize = DEFAULT_PAGE_SIZE,
+}: ClientsTableProps) {
   const [selected, setSelected] = useState<Client | null>(null);
+  const [page, setPage] = useState(1);
+
+  // Reset to page 1 whenever the upstream dataset changes (filters, upload).
+  useEffect(() => {
+    setPage(1);
+  }, [initialClients]);
+
+  const totalPages = Math.max(1, Math.ceil(initialClients.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageClients = useMemo(
+    () =>
+      initialClients.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize,
+      ),
+    [initialClients, currentPage, pageSize],
+  );
 
   if (initialClients.length === 0) {
     return (
@@ -54,6 +80,15 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                 Tamaño
               </TableHead>
               <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
+                Dolor
+              </TableHead>
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
+                Objeción
+              </TableHead>
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
+                Origen
+              </TableHead>
+              <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
                 Estado
               </TableHead>
               <TableHead className="text-muted-foreground uppercase text-xs tracking-wide">
@@ -65,7 +100,7 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialClients.map((c) => (
+            {pageClients.map((c) => (
               <TableRow
                 key={c.id}
                 role="button"
@@ -96,6 +131,9 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
                 <TableCell>{c.assignedSeller}</TableCell>
                 <TableCell>{c.industry ?? "—"}</TableCell>
                 <TableCell>{c.companySize ?? "—"}</TableCell>
+                <TableCell>{c.mainPainPoint ?? "—"}</TableCell>
+                <TableCell>{c.keyObjection ?? "—"}</TableCell>
+                <TableCell>{c.leadSource ?? "—"}</TableCell>
                 <TableCell>
                   <ClosedBadge closed={c.closed} />
                 </TableCell>
@@ -109,11 +147,74 @@ export function ClientsTable({ initialClients }: ClientsTableProps) {
         </Table>
       </div>
 
+      <PaginationControls
+        page={currentPage}
+        totalPages={totalPages}
+        totalClients={initialClients.length}
+        pageSize={pageSize}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+      />
+
       <ClientDetailModal
         client={selected}
         onClose={() => setSelected(null)}
       />
     </>
+  );
+}
+
+function PaginationControls({
+  page,
+  totalPages,
+  totalClients,
+  pageSize,
+  onPrev,
+  onNext,
+}: {
+  page: number;
+  totalPages: number;
+  totalClients: number;
+  pageSize: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, totalClients);
+  return (
+    <div
+      className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground"
+      data-testid="clients-pagination"
+    >
+      <span>
+        Mostrando {from}–{to} de {totalClients}
+      </span>
+      <div className="flex items-center gap-2">
+        <span>
+          Página {page} de {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPrev}
+          disabled={page <= 1}
+          aria-label="Página anterior"
+        >
+          <ChevronLeftIcon className="size-4" />
+          Anterior
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onNext}
+          disabled={page >= totalPages}
+          aria-label="Página siguiente"
+        >
+          Siguiente
+          <ChevronRightIcon className="size-4" />
+        </Button>
+      </div>
+    </div>
   );
 }
 

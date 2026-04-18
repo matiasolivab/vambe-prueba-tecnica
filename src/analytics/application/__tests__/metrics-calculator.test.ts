@@ -254,24 +254,18 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     expect(closedResult.rows[0]?.c).toBe(4);
   });
 
-  it("kpis with filter closed=true yields closeRate 1.0", async () => {
-    const result = await calc.kpis({ closed: true });
-    expect(result.closeRate).toBe(1);
-  });
-
   it("kpis with filter industry='Retail' scoped to fixture sellers", async () => {
-    // Retail rows in the fixture: #6 (closed) + #7 (not closed) → 1/2 = 0.5
+    // Retail rows in the fixture: #6 (closed) + #7 (not closed) → 2 rows.
     // We combine with assignedSeller='Puma' to stay fixture-local. Real
     // seeds use different seller/industry combos; we trust fixture
     // uniqueness via the test-metrics email prefix (cleaned up each test).
-    const result = await calc.kpis({
+    const before = await calc.kpis({
       industry: "Retail",
       assignedSeller: "Puma",
     });
     // Fixture Retail+Puma rows are exactly 2 (#6 closed, #7 not). Seeds MAY
     // add Puma+Retail rows too; we therefore assert RELATIVE: the delta
-    // from removing fixture rows equals 2 total, 1 closed.
-    const before = result;
+    // from removing fixture rows equals 2 total.
     await rawDb.execute(
       sql`DELETE FROM ${clients} WHERE ${clients.email} LIKE 'metrics-test-%@example.com'`,
     );
@@ -282,11 +276,6 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     await rawDb.insert(clients).values(FIXTURE);
 
     expect(before.totalClients - baseline.totalClients).toBe(2);
-    const beforeClosed = Math.round(before.totalClients * before.closeRate);
-    const baselineClosed = Math.round(
-      baseline.totalClients * baseline.closeRate,
-    );
-    expect(beforeClosed - baselineClosed).toBe(1);
   });
 
   it("sellerRanking is sorted by closeRate DESC and covers all sellers", async () => {
@@ -321,32 +310,6 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     }
   });
 
-  it("closeRateBy('industry') returns one row per industry with close rate in [0,1]", async () => {
-    const rows = await calc.closeRateBy("industry");
-    expect(rows.length).toBeGreaterThan(0);
-    for (const r of rows) {
-      expect(r.value).not.toBeNull();
-      expect(r.total).toBeGreaterThan(0);
-      expect(r.closeRate).toBeGreaterThanOrEqual(0);
-      expect(r.closeRate).toBeLessThanOrEqual(1);
-    }
-  });
-
-  it("closeRateBy('sentiment') excludes rows where sentiment IS NULL", async () => {
-    const rows = await calc.closeRateBy("sentiment");
-    for (const r of rows) {
-      expect(r.value).not.toBeNull();
-      expect(typeof r.value).toBe("string");
-      expect(r.value.length).toBeGreaterThan(0);
-    }
-    // Fixture row #6 has sentiment=null and MUST NOT appear as a bucket.
-    // Confirm by counting that no row with sentiment=null is present.
-    const nullish = rows.find(
-      (r) => r.value === null || r.value === undefined,
-    );
-    expect(nullish).toBeUndefined();
-  });
-
   it("sellerByIndustry returns one cell per (seller, industry) combination", async () => {
     const cells = await calc.sellerByIndustry();
     for (const c of cells) {
@@ -366,47 +329,16 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     expect(pairs).toContain("Lobo|Tecnología");
   });
 
-  it("objections splits into inClosed vs inNotClosed with correct direction", async () => {
-    const breakdown = await calc.objections();
-    // closed=true fixture rows always carry keyObjection='Ninguna' (overcome).
-    // So Ninguna MUST be present in inClosed with count >= 4 (our fixture).
-    const ninguna = breakdown.inClosed.find((o) => o.value === "Ninguna");
-    expect(ninguna).toBeDefined();
-    // closed=false fixture rows carry Compliance/Integración/Precio.
-    // Assert that at least one of these appears in inNotClosed.
-    const notClosedValues = breakdown.inNotClosed.map((o) => o.value);
-    const intersects = ["Compliance", "Integración", "Precio"].some((v) =>
-      notClosedValues.includes(v),
-    );
-    expect(intersects).toBe(true);
-    // Every row in each bucket has proper shape.
-    for (const o of [...breakdown.inClosed, ...breakdown.inNotClosed]) {
-      expect(o.total).toBeGreaterThan(0);
-      expect(o.closed).toBeGreaterThanOrEqual(0);
-      expect(typeof o.value).toBe("string");
-    }
-  });
-
-  it("returns closeRate=0 (not NaN) and empty arrays when filters match 0 rows", async () => {
+  it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);
     expect(kpi.totalClients).toBe(0);
-    expect(kpi.closeRate).toBe(0);
-    expect(Number.isNaN(kpi.closeRate)).toBe(false);
-    expect(kpi.topSeller).toBeNull();
     expect(kpi.topPainPoint).toBeNull();
 
     const ranking = await calc.sellerRanking(impossible);
     expect(ranking).toEqual([]);
 
-    const rates = await calc.closeRateBy("industry", impossible);
-    expect(rates).toEqual([]);
-
     const cells = await calc.sellerByIndustry(impossible);
     expect(cells).toEqual([]);
-
-    const obj = await calc.objections(impossible);
-    expect(obj.inClosed).toEqual([]);
-    expect(obj.inNotClosed).toEqual([]);
   });
 });

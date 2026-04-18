@@ -84,6 +84,7 @@ describe("SellersConversionBarChart", () => {
             name: "closedClients",
             dataKey: "closedClients",
             payload: row,
+            graphicalItemId: "closed-bar",
           },
         ]}
         label={row.seller}

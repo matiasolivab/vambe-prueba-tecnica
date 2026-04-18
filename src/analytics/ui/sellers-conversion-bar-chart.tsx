@@ -6,7 +6,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
-  type TooltipProps,
+  type TooltipContentProps,
   XAxis,
   YAxis,
 } from "recharts";
@@ -109,7 +109,7 @@ export function SellersConversionBarChart({
 export function CustomTooltip({
   active,
   payload,
-}: TooltipProps<number, string>): React.ReactElement | null {
+}: Partial<TooltipContentProps<number, string>>): React.ReactElement | null {
   if (!active || !payload || payload.length === 0) return null;
   const row = payload[0]?.payload as SellerConversion | undefined;
   if (!row) return null;

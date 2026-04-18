@@ -21,7 +21,7 @@ describe("TopLeadSourcesCard", () => {
     expect(screen.getByText(/cómo nos encontraron/i)).toBeInTheDocument();
   });
 
-  it("renders all 3 lead source names and their counts when given 3 items", () => {
+  it("renders every lead source name and count when given multiple items", () => {
     render(<TopLeadSourcesCard data={threeItems} />);
     expect(screen.getByText("Recomendación")).toBeInTheDocument();
     expect(screen.getByText("45")).toBeInTheDocument();
@@ -31,16 +31,15 @@ describe("TopLeadSourcesCard", () => {
     expect(screen.getByText("12")).toBeInTheDocument();
   });
 
-  it("renders N/A fallbacks for slots 2 and 3 when given 1 item", () => {
+  it("renders only real items when fewer than 5 are provided, no N/A padding", () => {
     render(<TopLeadSourcesCard data={oneItem} />);
     expect(screen.getByText("Recomendación")).toBeInTheDocument();
-    const naItems = screen.getAllByText("N/A");
-    expect(naItems.length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText("N/A")).not.toBeInTheDocument();
   });
 
-  it("renders all three slots as N/A when given empty data", () => {
+  it("renders a fallback message when data is empty", () => {
     render(<TopLeadSourcesCard data={[]} />);
-    const naItems = screen.getAllByText("N/A");
-    expect(naItems.length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByText(/sin datos de captación/i)).toBeInTheDocument();
+    expect(screen.queryByText("N/A")).not.toBeInTheDocument();
   });
 });

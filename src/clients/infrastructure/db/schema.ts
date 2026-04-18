@@ -41,7 +41,7 @@ export const clients = pgTable("clients", {
   companySize: text("company_size"),
   mainPainPoint: text("main_pain_point"),
   keyObjection: text("key_objection"),
-  buyingSignal: text("buying_signal"),
+  leadSource: text("lead_source"),
   sentiment: text("sentiment"),
 
   // --- LLM qualitative (PRD §7.2) --------------------------------------------

@@ -26,7 +26,7 @@ describe("clients Drizzle schema", () => {
       "companySize",
       "mainPainPoint",
       "keyObjection",
-      "buyingSignal",
+      "leadSource",
       "sentiment",
       // LLM qualitative (§7.2)
       "needsSummary",
@@ -91,7 +91,7 @@ describe("clients Drizzle schema", () => {
       "companySize",
       "mainPainPoint",
       "keyObjection",
-      "buyingSignal",
+      "leadSource",
       "sentiment",
       "needsSummary",
       "nextSteps",

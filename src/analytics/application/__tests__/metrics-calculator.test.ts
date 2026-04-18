@@ -392,6 +392,18 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     expect(rows).toEqual([]);
   });
 
+  it("sellerConversion tie-breaks alphabetically on equal totalClients", async () => {
+    const rows = await calc.sellerConversion();
+    // Among rows sharing totalClients, names must be ASC.
+    for (let i = 1; i < rows.length; i++) {
+      const prev = rows[i - 1]!;
+      const cur = rows[i]!;
+      if (prev.totalClients === cur.totalClients) {
+        expect(prev.seller.localeCompare(cur.seller)).toBeLessThanOrEqual(0);
+      }
+    }
+  });
+
   it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);

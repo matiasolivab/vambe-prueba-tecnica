@@ -44,14 +44,11 @@ function validClassification(
     companySize: "PYME",
     mainPainPoint: "Equipo Saturado",
     keyObjection: "Ninguna",
-    purchaseTimeline: "Corto (2-8 sem)",
     buyingSignal: "Evaluando",
-    decisionMakerRole: "Manager de Área",
     sentiment: "Neutro",
     needsSummary:
-      "Necesita automatizar respuestas a clientes frecuentes y liberar tiempo del equipo de soporte para casos complejos.",
-    nextSteps:
-      "Enviar propuesta técnica y agendar demo con el equipo la próxima semana.",
+      "Necesita automatizar respuestas a clientes frecuentes y liberar tiempo del equipo de soporte.",
+    nextSteps: "Enviar propuesta técnica y agendar demo la próxima semana.",
   };
   return { ...base, ...overrides };
 }

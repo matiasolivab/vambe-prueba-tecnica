@@ -304,37 +304,39 @@ describe.skipIf(!hasDbUrl)("DrizzleClientRepository (integration)", () => {
       companySize: "Mid-market",
       mainPainPoint: "Volumen Repetitivo",
       keyObjection: "Precio",
-      purchaseTimeline: "Corto",
       buyingSignal: "Muy Interesado",
-      decisionMakerRole: "CEO",
       sentiment: "Positivo",
       needsSummary: "Necesita automatizar respuestas de soporte.",
       nextSteps: "Enviar propuesta comercial el lunes.",
       reasoning: "Transcript explícito sobre urgencia y presupuesto.",
-      promptVersion: "1.3.0",
+      promptVersion: "2.0.0",
       modelVersion: "gpt-4o-mini-2024-07-18",
       truncated: false,
       classificationStatus: "ok",
       errorMessage: null,
       warnings: [
-        { name: "timeline-signal-mismatch", severity: "warning", message: "ok" },
+        { name: "signal-vs-sentiment", severity: "warning", message: "ok" },
       ],
     });
 
     const saved = await repo.upsertByEmail(full);
 
     expect(saved.industry).toBe("SaaS");
-    expect(saved.purchaseTimeline).toBe("Corto");
     expect(saved.sentiment).toBe("Positivo");
     expect(saved.classificationStatus).toBe("ok");
-    expect(saved.promptVersion).toBe("1.3.0");
+    expect(saved.promptVersion).toBe("2.0.0");
     expect(saved.modelVersion).toBe("gpt-4o-mini-2024-07-18");
     expect(saved.warnings).toEqual([
-      { name: "timeline-signal-mismatch", severity: "warning", message: "ok" },
+      { name: "signal-vs-sentiment", severity: "warning", message: "ok" },
     ]);
 
     const roundTrip = await repo.findByEmail(email);
     expect(roundTrip?.warnings).toEqual(saved.warnings);
+    // Removed fields must not exist on the type (compile-time check via absence).
+    // @ts-expect-error purchaseTimeline was removed
+    expect(saved.purchaseTimeline).toBeUndefined();
+    // @ts-expect-error decisionMakerRole was removed
+    expect(saved.decisionMakerRole).toBeUndefined();
   });
 
   it("upsert preserves special characters in warnings jsonb round-trip", async () => {

@@ -232,7 +232,7 @@ export class MetricsCalculator {
 
   public async topLeadSources(
     filters?: MetricFilters,
-    limit: number = 3,
+    limit: number = 5,
   ): Promise<readonly LeadSourceCount[]> {
     const where = this.buildWhereClassified(filters, clients.leadSource);
     const rows = await this.db

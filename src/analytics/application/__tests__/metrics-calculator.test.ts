@@ -474,7 +474,7 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
   });
 
   describe("topLeadSources", () => {
-    it("returns top 3 by default, ordered DESC by count", async () => {
+    it("returns top 5 by default, ordered DESC by count", async () => {
       const results = await calc.topLeadSources(undefined, 10);
       for (let i = 1; i < results.length; i++) {
         expect(results[i - 1]!.count).toBeGreaterThanOrEqual(results[i]!.count);
@@ -488,9 +488,9 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
       expect(results.map((r) => r.leadSource)).not.toContain("No Mencionado");
     });
 
-    it("default limit is 3", async () => {
+    it("default limit is 5", async () => {
       const results = await calc.topLeadSources();
-      expect(results.length).toBeLessThanOrEqual(3);
+      expect(results.length).toBeLessThanOrEqual(5);
     });
 
     it("respects custom limit", async () => {

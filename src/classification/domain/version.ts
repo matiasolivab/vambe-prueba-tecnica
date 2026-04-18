@@ -4,4 +4,4 @@
  * rule 13). Persisted on every classification row so runs executed with
  * different classifier logic remain distinguishable in the DB.
  */
-export const CLASSIFIER_VERSION = "1.4.0" as const;
+export const CLASSIFIER_VERSION = "2.0.0" as const;

@@ -12,10 +12,10 @@ describe("CLASSIFIER_VERSION", () => {
     expect(CLASSIFIER_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
-  it("stays on the 1.x major line (minor bumps allowed per ARCHITECTURE §13 rule 13)", () => {
-    // The major version is the stable contract for persisted rows in the DB —
-    // only a breaking classifier change should bump it. Minor bumps track
-    // prompt iterations (1.0.0 → 1.1.0 → 1.2.0 …) and are expected.
-    expect(CLASSIFIER_VERSION).toMatch(/^1\.\d+\.\d+$/);
+  it("is on the 2.x major line (schema shape changed — output contract breaks with 1.x)", () => {
+    // Major bump 1.x → 2.0.0 because the output schema removes two categorical
+    // dimensions (purchaseTimeline, decisionMakerRole). Persisted rows from 1.x
+    // are distinguishable in the DB by this version string.
+    expect(CLASSIFIER_VERSION).toMatch(/^2\.\d+\.\d+$/);
   });
 });

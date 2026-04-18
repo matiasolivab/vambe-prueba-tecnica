@@ -14,17 +14,8 @@ import {
 import type { MonthlyClientsPoint } from "@/analytics/application/temporal-metrics";
 import { formatYearMonthEs } from "@/shared/date/format-month-es";
 
-/**
- * 12-month line chart comparing closed vs. open clients. Closed = amber-400
- * (wins/highlight); open = cyan-400 (neutral pipeline).
- *
- * Expects the `data` array from `TemporalMetrics.clientsByMonth()` — either
- * exactly 12 ascending monthly buckets or an empty array (rendered as an
- * empty state, never as a blank chart).
- */
-
-const COLOR_CLOSED = "#fbbf24"; // amber-400 → wins
-const COLOR_OPEN = "#22d3ee"; // cyan-400 → pipeline
+const COLOR_CLOSED = "#fbbf24";
+const COLOR_OPEN = "#22d3ee";
 
 export interface ClientsByMonthChartProps {
   readonly data: readonly MonthlyClientsPoint[];

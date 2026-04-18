@@ -24,14 +24,6 @@ export interface ClientsTableProps {
 
 const DEFAULT_PAGE_SIZE = 20;
 
-/**
- * Clients list (§8.5). Pure Client Component — parent Server wrapper fetches
- * `findAll()` and hands the rows in via `initialClients`. Local state tracks
- * the selected row; clicking any cell opens the drill-down modal.
- *
- * Pagination is client-side (server already loaded the whole page's worth of
- * data). Page size is configurable via prop — defaults to {@link DEFAULT_PAGE_SIZE}.
- */
 export function ClientsTable({
   initialClients,
   pageSize = DEFAULT_PAGE_SIZE,
@@ -39,7 +31,6 @@ export function ClientsTable({
   const [selected, setSelected] = useState<Client | null>(null);
   const [page, setPage] = useState(1);
 
-  // Reset to page 1 whenever the upstream dataset changes (filters, upload).
   useEffect(() => {
     setPage(1);
   }, [initialClients]);

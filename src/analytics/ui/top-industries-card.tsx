@@ -20,8 +20,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const COLOR_TOP = "#fbbf24"; // amber-400 — líder
-const COLOR_REST = "#22d3ee"; // cyan-400 — resto
+const COLOR_TOP = "#fbbf24";
+const COLOR_REST = "#22d3ee";
 const COLOR_GRID = "#27272a";
 const COLOR_AXIS_TICK = "#d4d4d8";
 const COLOR_AXIS_LINE = "#3f3f46";

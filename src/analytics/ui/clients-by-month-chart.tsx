@@ -70,9 +70,11 @@ export function ClientsByMonthChart({ data }: ClientsByMonthChartProps) {
             axisLine={{ stroke: "currentColor", opacity: 0.2 }}
           />
           <Tooltip
-            labelFormatter={(ym: string) => formatYearMonthEs(ym)}
-            formatter={(value: number, name: string) => [
-              `${value} cliente(s)`,
+            labelFormatter={(label) =>
+              typeof label === "string" ? formatYearMonthEs(label) : ""
+            }
+            formatter={(value, name) => [
+              `${String(value)} cliente(s)`,
               name === "closed" ? "Cerrados" : "Abiertos",
             ]}
             contentStyle={{
@@ -86,8 +88,8 @@ export function ClientsByMonthChart({ data }: ClientsByMonthChartProps) {
           <Legend
             verticalAlign="top"
             iconType="circle"
-            formatter={(name: string) =>
-              name === "closed" ? "Cerrados" : "Abiertos"
+            formatter={(value) =>
+              value === "closed" ? "Cerrados" : "Abiertos"
             }
           />
           <Line

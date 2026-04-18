@@ -46,8 +46,6 @@ pnpm dev
 | `pnpm typecheck` | Chequeo de tipos. |
 | `pnpm lint` | ESLint. |
 | `pnpm test` | Corre toda la suite de unit + integration (Vitest). |
-| `pnpm test:gt` | Corre el test de ground-truth contra el LLM real (usa créditos). |
-| `pnpm test:e2e` | Playwright, camino feliz end-to-end. |
 | `pnpm db:studio` | Drizzle Studio para explorar las tablas. |
 | `pnpm seed` | Corre el pipeline de ingesta sobre el CSV de ejemplo. |
 

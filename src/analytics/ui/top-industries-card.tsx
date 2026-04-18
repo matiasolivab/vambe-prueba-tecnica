@@ -109,7 +109,8 @@ function IndustriesBarChart({ data }: { data: readonly IndustryCount[] }) {
             color: "var(--popover-foreground)",
             fontSize: "0.8125rem",
           }}
-          labelFormatter={(label: string) => {
+          labelFormatter={(label) => {
+            if (typeof label !== "string") return label;
             const match = enhanced.find((e) => e.displayName === label);
             return match?.industry ?? label;
           }}

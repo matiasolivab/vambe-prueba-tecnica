@@ -1,33 +1,16 @@
-"use client";
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  type TooltipContentProps,
-  XAxis,
-  YAxis,
-} from "recharts";
-
 import type { SellerConversion } from "@/analytics/application/metrics-calculator";
 
 /**
- * Stacked horizontal bar chart for Overview — one row per seller. Closed =
- * amber-400 (wins), open = cyan-400 (pipeline). The stack is declared with
- * `stackId="conv"`, so amber renders from the origin and cyan extends to the
- * right. Hex literals mirror `clients-by-month-chart.tsx` so both charts
- * share the exact same colour semantics.
+ * Conversion-by-seller grid — one row per seller, three columns:
+ * name | totalClients | stacked progress bar (amber closed / cyan open).
+ *
+ * Pure HTML + Tailwind, no Recharts. The outer bar width is proportional
+ * to the biggest `totalClients` in `data`; the inner amber segment width
+ * is `closeRate * 100%`, and the cyan segment (`flex-1`) fills the rest.
+ *
+ * Colour semantics match `clients-by-month-chart.tsx`:
+ *   amber-400 → closed (wins), cyan-400 → open (pipeline).
  */
-
-const COLOR_CLOSED = "#fbbf24"; // amber-400 — wins
-const COLOR_OPEN = "#22d3ee"; // cyan-400 — pipeline
-
-const ROW_HEIGHT = 36;
-const PADDING_Y = 48;
-const MIN_HEIGHT = 200;
-const MAX_HEIGHT = 560;
 
 export interface SellersConversionBarChartProps {
   readonly data: readonly SellerConversion[];
@@ -38,96 +21,53 @@ export function SellersConversionBarChart({
 }: SellersConversionBarChartProps) {
   if (data.length === 0) {
     return (
-      <p className="text-sm text-zinc-500">
-        Sin vendedores con reuniones en el período seleccionado.
-      </p>
+      <div className="text-zinc-500 text-sm text-center py-8">
+        Sin vendedores con reuniones
+      </div>
     );
   }
 
-  const raw = ROW_HEIGHT * data.length + PADDING_Y;
-  const chartHeight = Math.min(Math.max(raw, MIN_HEIGHT), MAX_HEIGHT);
-  const needsScroll = raw > MAX_HEIGHT;
+  // Fallback to 1 to avoid division-by-zero if every row is 0 (shouldn't
+  // happen for this chart but keeps the math total since early-return
+  // above only guards length).
+  const maxTotalClients = Math.max(...data.map((d) => d.totalClients), 1);
 
   return (
-    <section
-      role="region"
-      aria-label="Conversión por vendedor: reuniones cerradas vs abiertas"
-      className={needsScroll ? "w-full overflow-y-auto" : "w-full"}
-      style={needsScroll ? { maxHeight: MAX_HEIGHT } : undefined}
-      data-scroll={needsScroll ? "true" : "false"}
-      data-inner-height={chartHeight}
-    >
-      <ResponsiveContainer width="100%" height={chartHeight}>
-        <BarChart
-          layout="vertical"
-          data={[...data]}
-          margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="currentColor"
-            opacity={0.1}
-            horizontal={false}
-          />
-          <XAxis
-            type="number"
-            allowDecimals={false}
-            tickLine={false}
-            axisLine={{ stroke: "currentColor", opacity: 0.2 }}
-            tick={{ fill: "currentColor", fontSize: 12 }}
-          />
-          <YAxis
-            type="category"
-            dataKey="seller"
-            width={120}
-            tickLine={false}
-            axisLine={false}
-            tick={{ fill: "currentColor", fontSize: 12 }}
-          />
-          <Tooltip
-            content={<CustomTooltip />}
-            cursor={{ fill: "currentColor", opacity: 0.04 }}
-          />
-          <Bar stackId="conv" dataKey="closedClients" fill={COLOR_CLOSED} />
-          <Bar
-            stackId="conv"
-            dataKey="openClients"
-            fill={COLOR_OPEN}
-            radius={[0, 4, 4, 0]}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </section>
-  );
-}
-
-/**
- * Tooltip contents — rendered by Recharts on bar hover and exported for
- * direct testing (bypasses JSDOM mouseMove flakiness on BarChart).
- * Format: seller / "{total} reuniones · {closed} cerradas" / "{pct}% close rate".
- */
-export function CustomTooltip({
-  active,
-  payload,
-}: Partial<TooltipContentProps<number, string>>): React.ReactElement | null {
-  if (!active || !payload || payload.length === 0) return null;
-  const row = payload[0]?.payload as SellerConversion | undefined;
-  if (!row) return null;
-  const ratePct = Math.round(row.closeRate * 100);
-  return (
-    <div
-      className="rounded-md border px-3 py-2 text-xs shadow-sm"
-      style={{
-        background: "var(--popover)",
-        borderColor: "var(--border)",
-        color: "var(--popover-foreground)",
-      }}
-    >
-      <div className="text-sm font-medium">{row.seller}</div>
-      <div className="mt-0.5 text-muted-foreground">
-        {row.totalClients} reuniones · {row.closedClients} cerradas
-      </div>
-      <div className="mt-0.5">{ratePct}% close rate</div>
+    <div className="divide-y divide-zinc-800/60">
+      {data.map((row) => {
+        const outerWidthPct = (row.totalClients / maxTotalClients) * 100;
+        const closedWidthPct = row.closeRate * 100;
+        const ratePct = Math.round(row.closeRate * 100);
+        const tooltip = `${row.seller} · ${row.totalClients} reuniones · ${row.closedClients} cerradas · ${row.openClients} abiertas · ${ratePct}% close rate`;
+        return (
+          <div
+            key={row.seller}
+            data-testid="seller-row"
+            title={tooltip}
+            className="grid grid-cols-[1fr_auto_3fr] items-center gap-4 py-2"
+          >
+            <span className="text-zinc-50 text-sm truncate">{row.seller}</span>
+            <span className="text-zinc-300 text-sm tabular-nums text-right">
+              {row.totalClients}
+            </span>
+            <div
+              data-testid="seller-bar-outer"
+              className="flex h-2 rounded-full overflow-hidden bg-zinc-800/60"
+              style={{ width: `${outerWidthPct}%` }}
+            >
+              <div
+                data-testid="seller-bar-closed"
+                className="bg-amber-400 h-full"
+                style={{ width: `${closedWidthPct}%` }}
+              />
+              <div
+                data-testid="seller-bar-open"
+                className="bg-cyan-400 h-full flex-1"
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

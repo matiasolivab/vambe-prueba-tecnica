@@ -114,7 +114,7 @@ function IndustriesBarChart({ data }: { data: readonly IndustryCount[] }) {
             const match = enhanced.find((e) => e.displayName === label);
             return match?.industry ?? label;
           }}
-          formatter={(value: number) => [value, "Clientes"]}
+          formatter={(value) => [value, "Clientes"]}
         />
         <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={56}>
           {data.map((_, index) => (

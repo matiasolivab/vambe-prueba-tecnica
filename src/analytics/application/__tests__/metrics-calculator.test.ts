@@ -473,6 +473,39 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     });
   });
 
+  describe("topLeadSources", () => {
+    it("returns top 3 by default, ordered DESC by count", async () => {
+      const results = await calc.topLeadSources(undefined, 10);
+      for (let i = 1; i < results.length; i++) {
+        expect(results[i - 1]!.count).toBeGreaterThanOrEqual(results[i]!.count);
+      }
+      const sources = results.map((r) => r.leadSource);
+      expect(sources).toContain("Recomendación");
+    });
+
+    it("excludes 'No Mencionado' even when it's the most frequent", async () => {
+      const results = await calc.topLeadSources(undefined, 10);
+      expect(results.map((r) => r.leadSource)).not.toContain("No Mencionado");
+    });
+
+    it("default limit is 3", async () => {
+      const results = await calc.topLeadSources();
+      expect(results.length).toBeLessThanOrEqual(3);
+    });
+
+    it("respects custom limit", async () => {
+      const results = await calc.topLeadSources(undefined, 1);
+      expect(results.length).toBeLessThanOrEqual(1);
+    });
+
+    it("returns [] when no rows match filter", async () => {
+      const results = await calc.topLeadSources({
+        assignedSeller: "__NO_SUCH_SELLER__",
+      });
+      expect(results).toEqual([]);
+    });
+  });
+
   describe("topIndustries", () => {
     it("returns top 2 by default, excluding Otros", async () => {
       await rawDb.insert(clients).values([

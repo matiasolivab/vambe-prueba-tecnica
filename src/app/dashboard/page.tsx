@@ -11,6 +11,7 @@ import { KpiTile } from "@/analytics/ui/kpi-tile";
 import { PainPointsMatrix } from "@/analytics/ui/pain-points-matrix";
 import { SellersConversionBarChart } from "@/analytics/ui/sellers-conversion-bar-chart";
 import { TopIndustriesCard } from "@/analytics/ui/top-industries-card";
+import { TopLeadSourcesCard } from "@/analytics/ui/top-lead-sources-card";
 import {
   Card,
   CardContent,
@@ -45,7 +46,7 @@ export default async function DashboardOverviewPage({
   // line chart above, which also ignores `closed`).
   const conversionFilters = { ...metricFilters, closed: undefined };
   const [kpis, sellers, countMoM, topSeller, series, conversion,
-         painCounts, sizeCounts, topInd] =
+         painCounts, sizeCounts, topInd, topLeadSources] =
     await Promise.all([
       calc.kpis(metricFilters),
       getDashboardSellers(),
@@ -56,6 +57,7 @@ export default async function DashboardOverviewPage({
       calc.painPointCounts(metricFilters),
       calc.companySizeDistribution(metricFilters),
       calc.topIndustries(metricFilters, 100),
+      calc.topLeadSources(metricFilters),
     ]);
   const view = formatOverview({ kpis, countMoM, topSeller });
 
@@ -140,11 +142,14 @@ export default async function DashboardOverviewPage({
         </Card>
       </section>
 
-      <section
-        aria-label="Pains y tamaño de empresa"
-        className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2"
-      >
+      <section aria-label="Pain points principales" className="mt-6">
         <PainPointsMatrix data={painCounts} />
+      </section>
+
+      <section
+        aria-label="Tamaño, captación e industrias"
+        className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+      >
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
@@ -155,9 +160,7 @@ export default async function DashboardOverviewPage({
             <CompanySizeBarChart data={sizeCounts} />
           </CardContent>
         </Card>
-      </section>
-
-      <section aria-label="Industrias principales" className="mt-6">
+        <TopLeadSourcesCard data={topLeadSources} />
         <TopIndustriesCard data={topInd} />
       </section>
     </>

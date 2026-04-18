@@ -59,6 +59,11 @@ export interface IndustryCount {
   readonly count: number;
 }
 
+export interface LeadSourceCount {
+  readonly leadSource: string;
+  readonly count: number;
+}
+
 export interface SellerByIndustryCell {
   readonly seller: string;
   readonly industry: string;
@@ -223,6 +228,29 @@ export class MetricsCalculator {
       )
       .slice(0, limit)
       .map((r) => ({ industry: r.value, count: r.count }));
+  }
+
+  public async topLeadSources(
+    filters?: MetricFilters,
+    limit: number = 3,
+  ): Promise<readonly LeadSourceCount[]> {
+    const where = this.buildWhereClassified(filters, clients.leadSource);
+    const rows = await this.db
+      .select({
+        value: clients.leadSource,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(clients)
+      .where(where)
+      .groupBy(clients.leadSource)
+      .orderBy(desc(sql`count(*)`), asc(clients.leadSource));
+    return rows
+      .filter(
+        (r): r is { value: string; count: number } =>
+          r.value !== null && r.value !== "No Mencionado",
+      )
+      .slice(0, limit)
+      .map((r) => ({ leadSource: r.value, count: r.count }));
   }
 
   private buildWhere(filters?: MetricFilters): SQL | undefined {

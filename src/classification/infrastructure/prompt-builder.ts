@@ -3,7 +3,7 @@ import {
   COMPANY_SIZES,
   MAIN_PAIN_POINTS,
   KEY_OBJECTIONS,
-  BUYING_SIGNALS,
+  LEAD_SOURCES,
   SENTIMENTS,
   type Classification,
 } from "@/classification/domain/schema";
@@ -82,7 +82,7 @@ export class PromptBuilder {
     return [
       "Chain-of-Thought (OBLIGATORIO):",
       "- Emitís el campo `reasoning` PRIMERO, antes de cualquier valor categórico.",
-      "- En `reasoning` explicás tu análisis de la transcripción: qué señales encontraste para industria, tamaño, pain point, objeción, buying signal y sentiment.",
+      "- En `reasoning` explicás tu análisis de la transcripción: qué señales encontraste para industria, tamaño, pain point, objeción, origen del lead y sentiment.",
       "- Recién después asignás los valores. Esto mejora la accuracy en transcripciones ambiguas (~10-15%).",
     ].join("\n");
   }
@@ -93,7 +93,7 @@ export class PromptBuilder {
       `- companySize: [${COMPANY_SIZES.join(", ")}]`,
       `- mainPainPoint: [${MAIN_PAIN_POINTS.join(", ")}]`,
       `- keyObjection: [${KEY_OBJECTIONS.join(", ")}]`,
-      `- buyingSignal: [${BUYING_SIGNALS.join(", ")}]`,
+      `- leadSource: [${LEAD_SOURCES.join(", ")}]`,
       `- sentiment: [${SENTIMENTS.join(", ")}]`,
     ];
     const qualitativeLines = [
@@ -112,6 +112,7 @@ export class PromptBuilder {
       "Reglas anti-alucinación (NO NEGOCIABLES):",
       "- Si la transcripción NO menciona explícitamente la industria del cliente, devolvé `Otros`. NO INVENTES.",
       "- Si no hay una objeción clara, devolvé `Ninguna`. NO INVENTES.",
+      "- Si la transcripción NO menciona explícitamente cómo llegó a Vambe, usá `No Mencionado`. NUNCA inventes un canal.",
       "- NUNCA inventes datos. Si la información no está en la transcripción, usá el valor 'escape hatch' correspondiente.",
       "- IMPORTANTE: las reglas anti-alucinación son PRUDENCIA, no pesimismo. Si la transcripción deja señal implícita pero clara, aplicá las reglas por dimensión de más abajo; no caigas por defecto al escape hatch cuando la señal existe.",
     ].join("\n");
@@ -121,10 +122,9 @@ export class PromptBuilder {
    * Per-dimension discrimination rules. Drafted after measuring the baseline
    * prompt against the ground-truth fixture (task 4.2) — the rules below
    * target the specific error patterns diagnosed there (Mid-market
-   * under-classification, closure-vs-exploration inversion on buyingSignal,
-   * symptom-vs-cause confusion on mainPainPoint, and positivity bias on
-   * sentiment). See `docs/ARCHITECTURE.md` §13 rule 13: bump
-   * `CLASSIFIER_VERSION` whenever this section changes.
+   * under-classification, symptom-vs-cause confusion on mainPainPoint, and
+   * positivity bias on sentiment). See `docs/ARCHITECTURE.md` §13 rule 13:
+   * bump `CLASSIFIER_VERSION` whenever this section changes.
    */
   private formatPerDimensionRules(): string {
     return [
@@ -149,12 +149,15 @@ export class PromptBuilder {
       "- `Enterprise`: múltiples divisiones, operación continental/global, 1000+ interacciones/semana, mención de board corporativo.",
       "- Heurística práctica: si mencionan expansión internacional, operaciones internacionales, clientes en múltiples países, subí a Mid-market aunque el volumen base sea moderado.",
       "",
-      "buyingSignal (discriminá interés activo de interés exploratorio):",
-      "- `Muy Interesado`: la conversación termina con intención ACTIVA. Señales: \"estamos interesados en\", \"nos interesa [la solución/implementar]\", \"valoramos mucho\", \"gracias por la reunión\", pedido explícito de demo/piloto/cotización, \"creemos que podría ser LA solución que necesitamos\", \"queremos implementar\". El cliente SE COMPROMETE con la propuesta.",
-      "- `Evaluando`: el cliente DESCRIBE la propuesta de valor sin comprometerse (\"nos llamó la atención su capacidad para X\", \"consideramos fundamental Y\", \"nos interesa la idea\", \"nos pareció una opción interesante\", \"nos gustaría explorar cómo\"). Tono descriptivo/analítico. El interés se formula en tercera persona sobre la plataforma, no como intención propia.",
-      "- `Tibio`: interés leve, dudas sin resolver, preguntas genéricas sin caso de uso definido.",
-      "- `Frío`: desinterés explícito, abandono, objeción bloqueante no resuelta.",
-      "- DISCRIMINADOR CLAVE: \"nos interesa [la solución/implementar/esta herramienta]\" = Muy Interesado. \"nos llamó la atención\" / \"nos interesa la idea\" / \"consideramos que podría\" / \"nos pareció interesante\" = Evaluando. La diferencia es sutil: compromiso propio vs descripción del valor.",
+      "leadSource (canal por el cual el cliente descubrió Vambe — inferí solo desde el texto):",
+      "- `Búsqueda Online`: el cliente dice que buscó online / Google / artículo web / encontró buscando (\"buscaba en Google\", \"encontré un artículo\", \"estuve buscando una herramienta\").",
+      "- `Recomendación`: recomendación personal explícita (\"un colega/compañero/amigo/partner me lo recomendó\", \"un cliente nuestro nos habló\", \"fulano mencionó Vambe\").",
+      "- `Publicidad`: anuncio pagado EXPLÍCITO (\"vi un anuncio\", \"un ad\", \"sponsored\", \"en Google Ads\", \"en LinkedIn Ads\", \"publicidad\"). Requiere mención literal de publicidad/anuncio/ad.",
+      "- `Outbound`: Vambe inició el contacto (\"me escribieron\", \"me llamaron\", \"recibí un email de ustedes\", \"tu SDR me contactó\", \"ustedes nos presentaron\").",
+      "- `Otros`: canal MENCIONADO pero que no encaja en las 4 categorías anteriores (conferencias, ferias, seminarios, workshops, publicaciones orgánicas en LinkedIn/blogs sin mención de anuncio pagado).",
+      "- `No Mencionado`: la transcripción NO dice cómo el cliente llegó a Vambe. Escape hatch para silencio absoluto.",
+      "- DISCRIMINADOR CLAVE `Otros` vs `No Mencionado`: `Otros` = canal MENCIONADO-pero-no-encuadra. `No Mencionado` = canal SILENCIADO. Si dudas entre los dos, `No Mencionado` gana.",
+      "- DISCRIMINADOR CLAVE `Publicidad` vs `Otros`: publicación orgánica en LinkedIn / post de fundador / artículo de blog = `Otros` (no es publicidad pagada). Solo `Publicidad` cuando hay palabra literal de anuncio/ad/sponsored.",
       "",
       "mainPainPoint (`Volumen Repetitivo` es el DEFAULT fuerte — solo desplazalo con señales INEQUÍVOCAS):",
       "- `Volumen Repetitivo`: el problema ES la repetición misma. Cubre TODOS estos casos: \"consultas repetitivas\", \"preguntas frecuentes\", \"mismas preguntas\", volumen alto con temas homogéneos. DEFAULT cuando hay volumen elevado sin las señales específicas de las otras causas. Ante duda entre Volumen Repetitivo y otra causa, gana Volumen Repetitivo.",
@@ -166,11 +169,11 @@ export class PromptBuilder {
       "- `Pérdida de Personalización`: miedo explícito a perder tono/voz de marca al automatizar; el dolor es anticipado, no actual.",
       "- Orden de precedencia (solo cuando la señal específica es INEQUÍVOCA): Variabilidad Estacional (picos explícitos) > Integración Técnica (sistema específico obligatorio) > Consultas Especializadas > Equipo Saturado (equipo pequeño explícito) > Respuestas Lentas > Pérdida de Personalización > Volumen Repetitivo. Ante duda, Volumen Repetitivo gana.",
       "",
-      "sentiment (acompaña a buyingSignal):",
+      "sentiment (tono del cierre del cliente):",
       "- `Neutro`: tono informativo/analítico/exploratorio. DEFAULT cuando el cliente DESCRIBE la propuesta de valor sin comprometerse (\"nos llamó la atención su capacidad para\", \"consideramos fundamental\", \"nos pareció interesante\", \"nos gustaría explorar\"). Incluso si el lenguaje enumera virtudes, mientras el compromiso propio no sea activo, es Neutro.",
       "- `Positivo`: cierre con valoración ACTIVA. El cliente usa primera persona con intención propia (\"estamos interesados en\", \"nos interesa [la solución/implementar]\", \"valoramos mucho\", \"gracias por la reunión\", \"creemos que es LA solución\"). Requiere compromiso propio, no solo enumeración de virtudes.",
       "- `Negativo`: frustración, resistencia, desacuerdo explícito, objeción bloqueante.",
-      "- REGLA: sentiment debe ALINEARSE con buyingSignal. Muy Interesado ⇒ Positivo. Evaluando ⇒ Neutro. Nunca marques Positivo cuando el cliente solo describe virtudes sin intención activa de avanzar.",
+      "- REGLA: no marques `Positivo` cuando el cliente solo describe virtudes sin intención activa de avanzar. Compromiso propio explícito ⇒ Positivo; descripción analítica de la propuesta ⇒ Neutro.",
     ].join("\n");
   }
 

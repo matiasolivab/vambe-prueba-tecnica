@@ -8,7 +8,7 @@ import {
   COMPANY_SIZES,
   MAIN_PAIN_POINTS,
   KEY_OBJECTIONS,
-  BUYING_SIGNALS,
+  LEAD_SOURCES,
   SENTIMENTS,
   type Classification,
 } from "@/classification/domain/schema";
@@ -30,7 +30,7 @@ const fewShot1: FewShotExample = {
     companySize: "PYME",
     mainPainPoint: "Integración Técnica",
     keyObjection: "Integración",
-    buyingSignal: "Evaluando",
+    leadSource: "No Mencionado",
     sentiment: "Neutro",
     needsSummary:
       "El cliente necesita integrar su sistema de backend con la plataforma de Vambe mediante API REST y desea mantener compatibilidad con su stack actual.",
@@ -49,7 +49,7 @@ const fewShot2: FewShotExample = {
     companySize: "Startup",
     mainPainPoint: "Volumen Repetitivo",
     keyObjection: "Ninguna",
-    buyingSignal: "Muy Interesado",
+    leadSource: "No Mencionado",
     sentiment: "Positivo",
     needsSummary:
       "El cliente opera un e-commerce con 500 consultas diarias repetitivas y requiere automatización inmediata para liberar al equipo de soporte.",
@@ -93,7 +93,7 @@ describe("PromptBuilder", () => {
         "companySize",
         "mainPainPoint",
         "keyObjection",
-        "buyingSignal",
+        "leadSource",
         "sentiment",
         "needsSummary",
         "nextSteps",
@@ -107,6 +107,7 @@ describe("PromptBuilder", () => {
       // Removed dimensions must not appear
       expect(prompt).not.toContain("purchaseTimeline");
       expect(prompt).not.toContain("decisionMakerRole");
+      expect(prompt).not.toContain("buyingSignal");
     });
 
     it("propagates every enum value from domain/schema.ts into the prompt", () => {
@@ -119,7 +120,7 @@ describe("PromptBuilder", () => {
         { label: "COMPANY_SIZES", values: COMPANY_SIZES },
         { label: "MAIN_PAIN_POINTS", values: MAIN_PAIN_POINTS },
         { label: "KEY_OBJECTIONS", values: KEY_OBJECTIONS },
-        { label: "BUYING_SIGNALS", values: BUYING_SIGNALS },
+        { label: "LEAD_SOURCES", values: LEAD_SOURCES },
         { label: "SENTIMENTS", values: SENTIMENTS },
       ];
 
@@ -143,6 +144,16 @@ describe("PromptBuilder", () => {
       expect(prompt).toContain("NO INVENTES");
       // purchaseTimeline Indefinido rule must be gone
       expect(prompt).not.toContain("Indefinido");
+    });
+
+    it("includes the verbatim leadSource anti-hallucination rule (AC-5)", () => {
+      const builder = new PromptBuilder();
+
+      const prompt = builder.buildSystemPrompt();
+
+      expect(prompt).toContain(
+        "Si la transcripción NO menciona explícitamente cómo llegó a Vambe, usá `No Mencionado`. NUNCA inventes un canal.",
+      );
     });
 
     it("states updated word-count guidance for needsSummary (50-100) and nextSteps (25-75)", () => {

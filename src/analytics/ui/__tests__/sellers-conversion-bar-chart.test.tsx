@@ -100,4 +100,13 @@ describe("SellersConversionBarChart", () => {
     );
     expect(container.firstChild).toBeNull();
   });
+
+  it("renders an empty-state message when data is []", () => {
+    render(<SellersConversionBarChart data={[]} />);
+    expect(
+      screen.getByText(/sin vendedores con reuniones/i),
+    ).toBeInTheDocument();
+    // No SVG when empty.
+    expect(document.querySelector("svg")).toBeNull();
+  });
 });

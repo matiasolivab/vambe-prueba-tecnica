@@ -49,6 +49,16 @@ pnpm dev
 | `pnpm db:studio` | Drizzle Studio para explorar las tablas. |
 | `pnpm seed` | Corre el pipeline de ingesta sobre el CSV de ejemplo. |
 
+### Subir un CSV desde la UI
+
+El botón de upload del dashboard está protegido por contraseña para evitar que terceros consuman créditos de OpenAI. La contraseña por default es:
+
+```
+pruebavambe123
+```
+
+Se puede sobrescribir con la variable de entorno `UPLOAD_PASSWORD`.
+
 ---
 
 ## Arquitectura — la idea en corto

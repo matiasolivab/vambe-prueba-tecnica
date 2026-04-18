@@ -70,7 +70,7 @@ export default async function DashboardOverviewPage({
         className="grid grid-cols-1 gap-4 md:grid-cols-3"
       >
         <KpiTile
-          label="¿Cuántos clientes tenemos?"
+          label="¿Cuántas reuniones este mes?"
           value={countMoM.current}
           caption={view.totalCaption}
           delta={view.totalDelta}

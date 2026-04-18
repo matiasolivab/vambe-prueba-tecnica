@@ -424,6 +424,21 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     }
   });
 
+  /**
+   * Contract: sellerConversion does NOT self-sanitize filters.closed.
+   * If the caller passes { closed: true }, the result only contains closed
+   * rows (openClients === 0). Sanitization lives in the Overview Server
+   * Component — see src/app/dashboard/page.tsx.
+   */
+  it("sellerConversion honors filters.closed when explicitly provided", async () => {
+    const rows = await calc.sellerConversion({ closed: true });
+    for (const r of rows) {
+      expect(r.openClients).toBe(0);
+      expect(r.totalClients).toBe(r.closedClients);
+      expect(r.closeRate).toBe(1);
+    }
+  });
+
   it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);

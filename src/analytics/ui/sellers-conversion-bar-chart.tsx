@@ -24,6 +24,11 @@ import type { SellerConversion } from "@/analytics/application/metrics-calculato
 const COLOR_CLOSED = "#fbbf24"; // amber-400 — wins
 const COLOR_OPEN = "#22d3ee"; // cyan-400 — pipeline
 
+const ROW_HEIGHT = 36;
+const PADDING_Y = 48;
+const MIN_HEIGHT = 200;
+const MAX_HEIGHT = 560;
+
 export interface SellersConversionBarChartProps {
   readonly data: readonly SellerConversion[];
 }
@@ -39,13 +44,20 @@ export function SellersConversionBarChart({
     );
   }
 
+  const raw = ROW_HEIGHT * data.length + PADDING_Y;
+  const chartHeight = Math.min(Math.max(raw, MIN_HEIGHT), MAX_HEIGHT);
+  const needsScroll = raw > MAX_HEIGHT;
+
   return (
     <section
       role="region"
       aria-label="Conversión por vendedor: reuniones cerradas vs abiertas"
-      className="w-full"
+      className={needsScroll ? "w-full overflow-y-auto" : "w-full"}
+      style={needsScroll ? { maxHeight: MAX_HEIGHT } : undefined}
+      data-scroll={needsScroll ? "true" : "false"}
+      data-inner-height={chartHeight}
     >
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart
           layout="vertical"
           data={[...data]}

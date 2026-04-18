@@ -41,6 +41,9 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const encoder = new TextEncoder();
+// Gate to avoid burning OpenAI credits on unauthorised uploads during the
+// technical-test demo. Override via `UPLOAD_PASSWORD` env var in production.
+const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD ?? "pruebavambe123";
 
 function sseEvent(event: string, data: unknown): Uint8Array {
   return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -62,6 +65,17 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json(
       { error: "no_file", message: "Adjuntá un archivo en el campo 'csv'." },
       { status: 400 },
+    );
+  }
+
+  const password = formData.get("password");
+  if (typeof password !== "string" || password !== UPLOAD_PASSWORD) {
+    return NextResponse.json(
+      {
+        error: "invalid_password",
+        message: "Contraseña incorrecta.",
+      },
+      { status: 401 },
     );
   }
 

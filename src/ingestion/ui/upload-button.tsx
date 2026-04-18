@@ -2,8 +2,13 @@
 
 import { Loader2Icon, UploadCloudIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { toast } from "sonner";
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+} from "react";
 
 import type {
   IngestionProgress,
@@ -23,17 +28,16 @@ import { cn } from "@/lib/utils";
 
 /**
  * UploadButton (PRD §8.6) — top-right dashboard action that opens a modal
- * dropzone, POSTs the CSV to `/api/upload`, consumes the SSE stream, and
- * refreshes the dashboard when ingestion finishes.
+ * password gate first, then a dropzone, POSTs the CSV to `/api/upload`,
+ * consumes the SSE stream, and refreshes the dashboard when ingestion
+ * finishes.
  *
- * State machine: idle → uploading → done | error. Each state renders a
- * distinct dialog body. On terminal `done`, we toast success and call
- * `router.refresh()` so Server Components re-fetch fresh Neon data.
- *
- * Clean-code: streaming, event handling, and state transitions are
- * extracted into small private helpers; the component itself stays focused
- * on rendering per-state UI.
+ * State machine: gate → idle → uploading → done | error. The gate is a
+ * simple client-side check to avoid accidental uploads; the server also
+ * validates the password on /api/upload so it's authoritative.
  */
+
+const EXPECTED_PASSWORD = "pruebavambe123";
 
 type UiState =
   | { kind: "idle" }
@@ -57,18 +61,33 @@ type ErrorPayload = {
 export default function UploadButton() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [authed, setAuthed] = useState(false);
+  const [password, setPassword] = useState("");
+  const [gateError, setGateError] = useState<string | null>(null);
   const [state, setState] = useState<UiState>({ kind: "idle" });
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function resetIdle() {
+  function resetAll() {
     setState({ kind: "idle" });
     setIsDragging(false);
+    setAuthed(false);
+    setPassword("");
+    setGateError(null);
   }
 
   function onOpenChange(next: boolean) {
     setOpen(next);
-    if (!next) resetIdle();
+    if (!next) resetAll();
+  }
+
+  function submitPassword() {
+    if (password === EXPECTED_PASSWORD) {
+      setAuthed(true);
+      setGateError(null);
+      return;
+    }
+    setGateError("Contraseña incorrecta");
   }
 
   async function handleUpload(file: File) {
@@ -76,19 +95,34 @@ export default function UploadButton() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
-        body: buildFormData(file),
+        body: buildFormData(file, password),
       });
+      if (!res.ok) {
+        const payload = (await res
+          .json()
+          .catch(() => null)) as ErrorPayload | null;
+        setState({
+          kind: "error",
+          code: payload?.code ?? "http",
+          message: payload?.message ?? `HTTP ${res.status}`,
+        });
+        return;
+      }
       if (!res.body) {
-        const msg = `HTTP ${res.status}`;
-        setState({ kind: "error", code: "http", message: msg });
-        toast.error(msg);
+        setState({
+          kind: "error",
+          code: "http",
+          message: `HTTP ${res.status}`,
+        });
         return;
       }
       await consumeStream(res.body, handleEvent);
     } catch {
-      const msg = "No se pudo conectar";
-      setState({ kind: "error", code: "network", message: msg });
-      toast.error(msg);
+      setState({
+        kind: "error",
+        code: "network",
+        message: "No se pudo conectar",
+      });
     }
   }
 
@@ -101,9 +135,6 @@ export default function UploadButton() {
     if (ev.event === "done") {
       const report = JSON.parse(ev.data) as IngestionReport;
       setState({ kind: "done", report });
-      toast.success(
-        `Se clasificaron ${report.succeeded} clientes, ${report.failed} fallaron`,
-      );
       router.refresh();
       return;
     }
@@ -116,20 +147,21 @@ export default function UploadButton() {
         missingColumns: err.missingColumns,
         unexpectedColumns: err.unexpectedColumns,
       });
-      toast.error(err.message);
     }
   }
 
   function onFileInput(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) void handleUpload(file);
+    if (!file) return;
+    void handleUpload(file);
   }
 
   function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) void handleUpload(file);
+    if (!file) return;
+    void handleUpload(file);
   }
 
   return (
@@ -147,21 +179,37 @@ export default function UploadButton() {
           showCloseButton={state.kind !== "uploading"}
         >
           <DialogHeader>
-            <DialogTitle>Subir CSV de clientes</DialogTitle>
+            <DialogTitle>
+              {authed ? "Subir CSV de clientes" : "Acceso protegido"}
+            </DialogTitle>
             <DialogDescription>
-              El archivo se procesará y clasificará en vivo.
+              {authed
+                ? "El archivo se procesará y clasificará en vivo."
+                : "Ingresa la contraseña para subir un CSV. Esto evita subidas ajenas a la prueba técnica."}
             </DialogDescription>
           </DialogHeader>
-          <Body
-            state={state}
-            isDragging={isDragging}
-            onPickFile={() => inputRef.current?.click()}
-            onDragOver={(e) => e.preventDefault()}
-            onDragEnter={() => setIsDragging(true)}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={onDrop}
-            onCloseClick={() => onOpenChange(false)}
-          />
+          {authed ? (
+            <Body
+              state={state}
+              isDragging={isDragging}
+              onPickFile={() => inputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDragEnter={() => setIsDragging(true)}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={onDrop}
+              onCloseClick={() => onOpenChange(false)}
+            />
+          ) : (
+            <GateBody
+              password={password}
+              error={gateError}
+              onPasswordChange={(v) => {
+                setPassword(v);
+                if (gateError) setGateError(null);
+              }}
+              onSubmit={submitPassword}
+            />
+          )}
           <input
             ref={inputRef}
             data-testid="upload-input"
@@ -176,9 +224,10 @@ export default function UploadButton() {
   );
 }
 
-function buildFormData(file: File): FormData {
+function buildFormData(file: File, password: string): FormData {
   const fd = new FormData();
   fd.append("csv", file);
+  fd.append("password", password);
   return fd;
 }
 
@@ -197,6 +246,62 @@ async function consumeStream(
     buffer = remainder;
     for (const ev of events) onEvent(ev);
   }
+}
+
+function GateBody({
+  password,
+  error,
+  onPasswordChange,
+  onSubmit,
+}: {
+  password: string;
+  error: string | null;
+  onPasswordChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    onSubmit();
+  }
+  const canSubmit = password.trim().length > 0;
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 py-2">
+      <div className="space-y-1">
+        <label
+          htmlFor="upload-password"
+          className="text-xs font-medium text-muted-foreground"
+        >
+          Contraseña
+        </label>
+        <input
+          id="upload-password"
+          data-testid="upload-password"
+          type="password"
+          autoComplete="off"
+          autoFocus
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => onPasswordChange(e.target.value)}
+          className={cn(
+            "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2",
+            error
+              ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+              : "border-border focus:border-primary focus:ring-primary/20",
+          )}
+        />
+        {error ? (
+          <p className="text-xs text-red-600" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={!canSubmit}>
+          Continuar
+        </Button>
+      </div>
+    </form>
+  );
 }
 
 interface BodyProps {
@@ -251,7 +356,7 @@ function IdleBody({
     >
       <UploadCloudIcon className="mx-auto mb-3 text-muted-foreground" />
       <p className="text-sm text-foreground">
-        Arrastrá un CSV o hacé click para seleccionar
+        Arrastra un CSV o haz click para seleccionar
       </p>
       <p className="mt-1 text-xs text-muted-foreground">Formato .csv · UTF-8</p>
     </div>
@@ -287,6 +392,17 @@ function UploadingBody({ progress }: { progress: IngestionProgress | null }) {
           Procesando: {progress.lastEmail}
         </p>
       ) : null}
+      <div className="mt-4 rounded-md border border-border/60 bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">
+            ¿Esto tarda mucho, no?
+          </span>{" "}
+          Sí. Cada transcripción pasa por una llamada a la IA y eso es lento de
+          por sí. Si seguimos escalando, esto se mejora moviéndolo a workers o
+          una cola asíncrona para procesar en paralelo — ya está identificado
+          como mejora.
+        </p>
+      </div>
     </div>
   );
 }

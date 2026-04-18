@@ -61,6 +61,7 @@ describe.skipIf(!canRun)("POST /api/upload (integration — light)", () => {
     const form = new FormData();
     const badCsv = "foo,bar,baz\n1,2,3\n";
     form.set("csv", new Blob([badCsv], { type: "text/csv" }), "bad.csv");
+    form.set("password", "pruebavambe123");
 
     const res = await POST(buildRequest(form));
     expect(res.status).toBe(200);
@@ -69,5 +70,15 @@ describe.skipIf(!canRun)("POST /api/upload (integration — light)", () => {
     const text = await readStreamText(res);
     expect(text).toContain("event: error");
     expect(text).toContain("ingestion.invalid_csv_format");
+  });
+
+  it("returns 401 when the password is missing or wrong", async () => {
+    const form = new FormData();
+    form.set("csv", new Blob(["email,transcript\na@b.com,hi\n"], { type: "text/csv" }), "c.csv");
+    form.set("password", "wrong");
+    const res = await POST(buildRequest(form));
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe("invalid_password");
   });
 });

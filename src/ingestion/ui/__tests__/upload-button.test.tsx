@@ -5,18 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import UploadButton from "@/ingestion/ui/upload-button";
 
 const refreshMock = vi.fn();
-const toastSuccessMock = vi.fn();
-const toastErrorMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: refreshMock }),
-}));
-
-vi.mock("sonner", () => ({
-  toast: {
-    success: (...args: unknown[]) => toastSuccessMock(...args),
-    error: (...args: unknown[]) => toastErrorMock(...args),
-  },
 }));
 
 function streamResponse(text: string, init?: ResponseInit): Response {
@@ -35,17 +26,22 @@ function makeCsvFile(): File {
   });
 }
 
-async function uploadFileViaInput(file: File): Promise<void> {
+async function uploadFileViaInput(
+  file: File,
+  opts: { password?: string } = {},
+): Promise<void> {
+  const password = opts.password ?? "pruebavambe123";
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: /subir csv nuevo/i }));
+  const passwordInput = await screen.findByTestId("upload-password");
+  await user.type(passwordInput, password);
+  await user.click(screen.getByRole("button", { name: /continuar/i }));
   const input = await screen.findByTestId("upload-input");
   await user.upload(input, file);
 }
 
 beforeEach(() => {
   refreshMock.mockReset();
-  toastSuccessMock.mockReset();
-  toastErrorMock.mockReset();
 });
 
 afterEach(() => {
@@ -60,25 +56,47 @@ describe("UploadButton", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the dialog on click and shows idle dropzone text", async () => {
+  it("opens the dialog on click and shows the password gate", async () => {
     const user = userEvent.setup();
     render(<UploadButton />);
     await user.click(screen.getByRole("button", { name: /subir csv nuevo/i }));
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(await screen.findByTestId("upload-password")).toBeInTheDocument();
     expect(
-      screen.getByText(/arrastr.*csv.*click.*seleccionar/i),
+      screen.getByRole("button", { name: /continuar/i }),
     ).toBeInTheDocument();
   });
 
-  it("renders idle state with a CSV-accepting file input", async () => {
+  it("shows 'Contraseña incorrecta' when the gate password is wrong", async () => {
     const user = userEvent.setup();
     render(<UploadButton />);
     await user.click(screen.getByRole("button", { name: /subir csv nuevo/i }));
+    const passwordInput = await screen.findByTestId("upload-password");
+    await user.type(passwordInput, "nope");
+    await user.click(screen.getByRole("button", { name: /continuar/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /contraseña incorrecta/i,
+    );
+    expect(
+      screen.queryByText(/arrastr.*csv.*click.*seleccionar/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("passes the gate with the correct password and reveals the dropzone", async () => {
+    const user = userEvent.setup();
+    render(<UploadButton />);
+    await user.click(screen.getByRole("button", { name: /subir csv nuevo/i }));
+    const passwordInput = await screen.findByTestId("upload-password");
+    await user.type(passwordInput, "pruebavambe123");
+    await user.click(screen.getByRole("button", { name: /continuar/i }));
+    expect(
+      await screen.findByText(/arrastr.*csv.*click.*seleccionar/i),
+    ).toBeInTheDocument();
     const input = await screen.findByTestId("upload-input");
     expect(input).toHaveAttribute("accept", expect.stringContaining(".csv"));
   });
 
-  it("runs happy path: progress + done → success message and toast.success + router.refresh", async () => {
+  it("runs happy path: progress + done → success message and router.refresh", async () => {
     const body =
       "event: progress\ndata: {\"total\":1,\"processed\":0,\"succeeded\":0,\"failed\":0}\n\n" +
       "event: progress\ndata: {\"total\":1,\"processed\":1,\"succeeded\":1,\"failed\":0,\"lastEmail\":\"a@b.com\"}\n\n" +
@@ -97,11 +115,10 @@ describe("UploadButton", () => {
       "/api/upload",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(toastSuccessMock).toHaveBeenCalledTimes(1);
     expect(refreshMock).toHaveBeenCalledTimes(1);
   });
 
-  it("renders error state with missing columns and calls toast.error on error event", async () => {
+  it("renders error state with missing columns on error event", async () => {
     const body =
       "event: error\ndata: " +
       JSON.stringify({
@@ -123,7 +140,6 @@ describe("UploadButton", () => {
     // The missing column name "email" is rendered as a list item chip.
     const chips = screen.getAllByText(/^email$/i);
     expect(chips.length).toBeGreaterThan(0);
-    expect(toastErrorMock).toHaveBeenCalledTimes(1);
     expect(refreshMock).not.toHaveBeenCalled();
   });
 
@@ -136,6 +152,5 @@ describe("UploadButton", () => {
     await waitFor(() =>
       expect(screen.getByText(/no se pudo conectar/i)).toBeInTheDocument(),
     );
-    expect(toastErrorMock).toHaveBeenCalledTimes(1);
   });
 });

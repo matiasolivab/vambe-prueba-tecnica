@@ -109,4 +109,32 @@ describe("SellersConversionBarChart", () => {
     // No SVG when empty.
     expect(document.querySelector("svg")).toBeNull();
   });
+
+  it("does not enable scroll when few sellers fit within maxHeight", () => {
+    render(<SellersConversionBarChart data={makeSellers(3)} />);
+    const region = screen.getByRole("region", {
+      name: /conversión por vendedor/i,
+    });
+    expect(region.getAttribute("data-scroll")).toBe("false");
+    expect(region.getAttribute("data-inner-height")).toBe("200");
+  });
+
+  it("enables scroll and caps inner height when sellers exceed maxHeight", () => {
+    render(<SellersConversionBarChart data={makeSellers(20)} />);
+    const region = screen.getByRole("region", {
+      name: /conversión por vendedor/i,
+    });
+    expect(region.getAttribute("data-scroll")).toBe("true");
+    expect(region.getAttribute("data-inner-height")).toBe("560");
+  });
 });
+
+function makeSellers(n: number): readonly SellerConversion[] {
+  return Array.from({ length: n }, (_, i) => ({
+    seller: `Seller-${String(i).padStart(2, "0")}`,
+    totalClients: n - i,
+    closedClients: 0,
+    openClients: n - i,
+    closeRate: 0,
+  }));
+}

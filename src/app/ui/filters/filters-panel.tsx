@@ -83,7 +83,7 @@ export function FiltersPanel({ sellers }: FiltersPanelProps) {
       <Input
         type="search"
         aria-label="Buscar"
-        placeholder="Nombre o email..."
+        placeholder="Nombre o email *"
         value={searchDraft}
         onChange={(e) => setSearchDraft(e.target.value)}
       />
@@ -129,6 +129,11 @@ export function FiltersPanel({ sellers }: FiltersPanelProps) {
           className="col-span-2"
         />
       </div>
+
+      <p className="text-[11px] leading-snug text-muted-foreground">
+        <span className="font-medium">*</span> La búsqueda solo filtra la tabla
+        de Clientes. El resto aplica a tablas y métricas globales.
+      </p>
     </div>
   );
 }

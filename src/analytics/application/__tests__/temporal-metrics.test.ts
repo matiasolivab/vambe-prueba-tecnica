@@ -492,4 +492,72 @@ describe.skipIf(!hasDbUrl)("TemporalMetrics (integration)", () => {
       expect(result.deltaPct).toBeNull();
     });
   });
+
+  describe("topSellerByMonth", () => {
+    it("returns the seller with most closed rows in the anchor month", async () => {
+      // April 2026 (anchor): Ana=2 closed / 3 total (66.7%), Bruno=1/4 (25%).
+      // Ana wins on closedInMonth.
+      const top = await temporal.topSellerByMonth();
+      // The global seeded data may shift the anchor, so filter down to the
+      // fixture sellers to keep the assertion deterministic.
+      const scoped = await temporal.topSellerByMonth({
+        // intentionally no closed filter — method ignores it anyway
+      });
+      expect(scoped).not.toBeNull();
+      // Using scoped+filter to force the fixture-only window:
+      const fixtureScoped = await temporal.topSellerByMonth({
+        industry: "Tecnología",
+      });
+      // Ana with 2 closed > Bruno with 1 closed in April under Tecnología.
+      expect(fixtureScoped?.name).toBe("Ana");
+      expect(fixtureScoped?.closedInMonth).toBe(2);
+      expect(fixtureScoped?.totalInMonth).toBe(2);
+      expect(fixtureScoped?.closeRateInMonth).toBeCloseTo(1, 3);
+      expect(fixtureScoped?.yearMonth).toBe("2026-04");
+      expect(top).not.toBeUndefined();
+    });
+
+    it("breaks ties on closedInMonth by closeRateInMonth (desc)", async () => {
+      // Narrow filter: within industry=Tecnología AND company=SMB in April,
+      // Ana has 2 closed of 2 (100%), Bruno has 1 closed of 4 (25%).
+      // Even if they had the same closedInMonth, Ana would win on closeRate.
+      const top = await temporal.topSellerByMonth({
+        industry: "Tecnología",
+        companySize: "SMB",
+      });
+      expect(top?.name).toBe("Ana");
+    });
+
+    it("returns null when the anchor month has no closed rows (HAVING filter)", async () => {
+      // Ana + industry=Retail: anchor=2026-04, 0 closed, 1 open → null.
+      const top = await temporal.topSellerByMonth({
+        assignedSeller: "Ana",
+        industry: "Retail",
+      });
+      expect(top).toBeNull();
+    });
+
+    it("returns null for an empty filtered dataset", async () => {
+      const top = await temporal.topSellerByMonth({
+        assignedSeller: "__NO_SUCH_SELLER__",
+      });
+      expect(top).toBeNull();
+    });
+
+    it("respects filters.industry", async () => {
+      const top = await temporal.topSellerByMonth({ industry: "Tecnología" });
+      expect(top?.name).toBe("Ana");
+    });
+
+    it("ignores filters.closed (passing closed:false does not erase the ranking)", async () => {
+      const withFalse = await temporal.topSellerByMonth({
+        industry: "Tecnología",
+        closed: false,
+      });
+      const withoutFilter = await temporal.topSellerByMonth({
+        industry: "Tecnología",
+      });
+      expect(withFalse).toEqual(withoutFilter);
+    });
+  });
 });

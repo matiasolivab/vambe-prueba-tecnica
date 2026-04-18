@@ -36,6 +36,16 @@ export interface ClientCountMoM {
   readonly referenceYearMonth: string;
 }
 
+/** Top seller of the anchor month (most closed deals, with tie-breakers). */
+export interface TopSellerByMonth {
+  readonly name: string;
+  readonly closedInMonth: number;
+  readonly totalInMonth: number;
+  /** In [0, 1]. */
+  readonly closeRateInMonth: number;
+  readonly yearMonth: string; // "YYYY-MM"
+}
+
 export class TemporalMetrics {
   public constructor(private readonly db: NeonHttpDatabase) {}
 
@@ -81,6 +91,23 @@ export class TemporalMetrics {
       deltaPct: computeDeltaPct(current, previous),
       referenceYearMonth: anchor,
     };
+  }
+
+  /**
+   * Returns the seller who closed the most deals inside the anchor month.
+   * Tie-breakers: higher close-rate, then alphabetical name. Returns `null`
+   * if no one closed at all (HAVING filter) or the dataset is empty.
+   *
+   * Like the chart, this ignores `filters.closed` — filtering by `closed=false`
+   * would wipe out the ranking on purpose.
+   */
+  public async topSellerByMonth(
+    filters?: MetricFilters,
+  ): Promise<TopSellerByMonth | null> {
+    const where = this.buildWhere({ ...(filters ?? {}), closed: undefined });
+    const anchor = await this.fetchAnchorYearMonth(where);
+    if (!anchor) return null;
+    return this.fetchTopSellerOfMonth(where, anchor);
   }
 
   // --- private helpers -----------------------------------------------------
@@ -144,6 +171,43 @@ export class TemporalMetrics {
       .from(clients)
       .where(where);
     return { current: row?.current ?? 0, previous: row?.previous ?? 0 };
+  }
+
+  private async fetchTopSellerOfMonth(
+    where: SQL | undefined,
+    anchor: string,
+  ): Promise<TopSellerByMonth | null> {
+    const anchorDate = `${anchor}-01`;
+    const monthScope = sql`date_trunc('month', ${clients.meetingDate}) = date_trunc('month', ${anchorDate}::date)`;
+    const sellerNotNull = sql`${clients.assignedSeller} is not null`;
+    const scoped = where
+      ? (and(where, monthScope, sellerNotNull) as SQL)
+      : (and(monthScope, sellerNotNull) as SQL);
+    const [row] = await this.db
+      .select({
+        name: clients.assignedSeller,
+        total: sql<number>`count(*)::int`,
+        closed: sql<number>`sum(case when ${clients.closed} then 1 else 0 end)::int`,
+      })
+      .from(clients)
+      .where(scoped)
+      .groupBy(clients.assignedSeller)
+      .having(sql`sum(case when ${clients.closed} then 1 else 0 end) > 0`)
+      .orderBy(
+        sql`sum(case when ${clients.closed} then 1 else 0 end) desc`,
+        sql`sum(case when ${clients.closed} then 1 else 0 end)::float
+            / nullif(count(*), 0) desc`,
+        asc(clients.assignedSeller),
+      )
+      .limit(1);
+    if (!row) return null;
+    return {
+      name: row.name,
+      closedInMonth: row.closed,
+      totalInMonth: row.total,
+      closeRateInMonth: row.total === 0 ? 0 : row.closed / row.total,
+      yearMonth: anchor,
+    };
   }
 
   private async fetchMonthlyBuckets(

@@ -53,7 +53,7 @@ interface GroundTruthExpected {
   readonly companySize: string;
   readonly mainPainPoint: string;
   readonly keyObjection: string;
-  readonly buyingSignal: string;
+  readonly leadSource: string;
   readonly sentiment: string;
   readonly needsSummary: string;
   readonly nextSteps: string;
@@ -85,7 +85,7 @@ type CategoricalDimension =
   | "companySize"
   | "mainPainPoint"
   | "keyObjection"
-  | "buyingSignal"
+  | "leadSource"
   | "sentiment";
 
 const CATEGORICAL_DIMENSIONS: readonly CategoricalDimension[] = [
@@ -93,7 +93,7 @@ const CATEGORICAL_DIMENSIONS: readonly CategoricalDimension[] = [
   "companySize",
   "mainPainPoint",
   "keyObjection",
-  "buyingSignal",
+  "leadSource",
   "sentiment",
 ];
 

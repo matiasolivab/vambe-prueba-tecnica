@@ -46,7 +46,7 @@ function validClassification(
     companySize: "PYME",
     mainPainPoint: "Equipo Saturado",
     keyObjection: "Ninguna",
-    buyingSignal: "Evaluando",
+    leadSource: "No Mencionado",
     sentiment: "Neutro",
     needsSummary:
       "Necesita automatizar respuestas a clientes frecuentes y liberar tiempo del equipo de soporte para casos complejos.",
@@ -119,7 +119,7 @@ class FakeRepository implements ClientRepository {
         companySize: null,
         mainPainPoint: null,
         keyObjection: null,
-        buyingSignal: null,
+        leadSource: null,
         sentiment: null,
         needsSummary: null,
         nextSteps: null,

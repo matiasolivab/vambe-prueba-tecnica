@@ -37,7 +37,7 @@ const goodClassification: Classification = {
   companySize: "Startup",
   mainPainPoint: "Volumen Repetitivo",
   keyObjection: "Ninguna",
-  buyingSignal: "Muy Interesado",
+  leadSource: "Publicidad",
   sentiment: "Positivo",
   needsSummary:
     "El cliente opera un e-commerce con 500 consultas diarias repetitivas y necesita automatizar respuestas para liberar al equipo de soporte.",

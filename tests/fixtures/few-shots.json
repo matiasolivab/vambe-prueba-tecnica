@@ -1,17 +1,17 @@
 {
-  "note": "Few-shot examples for the classification prompt (PRD §12 Task 4.3). Composition after 2026-04-16 bias audit: 3 REAL transcripts from data/vambe_clients.csv (j.morales, m.espinoza, f.navarro) — NOT present in ground-truth.json — re-labeled 2026-04-16 with transcript-only criteria aligned to PromptBuilder per-dimension rules; they demonstrate the EXPLORATORY pattern (Evaluando/Neutro/Indefinido) that dominates the Vambe dataset. 2 SYNTHETIC transcripts (synthetic-commitment-01, synthetic-urgency-01) teach the COMMITMENT frontier (Muy Interesado/Positivo + Corto/Urgente) that real Vambe transcripts don't contain. Together, the 5 shots teach the model to DISCRIMINATE between exploratory and commitment signals instead of collapsing to a single class.",
+  "note": "Few-shot examples for the classification prompt (PRD §12 Task 4.3). Composition after 2026-04-16 bias audit: 3 REAL transcripts from data/vambe_clients.csv (j.morales, m.espinoza, f.navarro) — NOT present in ground-truth.json — re-labeled 2026-04-16 with transcript-only criteria aligned to PromptBuilder per-dimension rules; they demonstrate the EXPLORATORY pattern (Evaluando/Neutro/Indefinido) that dominates the Vambe dataset. 2 SYNTHETIC transcripts (synthetic-commitment-01, synthetic-urgency-01) teach the COMMITMENT frontier (Muy Interesado/Positivo + Corto/Urgente) that real Vambe transcripts don't contain. Together, the 5 shots teach the model to DISCRIMINATE between exploratory and commitment signals instead of collapsing to a single class. v3.0.0 (2026-04-18): buyingSignal replaced by leadSource in all 5 entries.",
   "examples": [
     {
       "sourceEmail": "j.morales@example.com",
       "sourceRow": 12,
       "transcript": "Nuestra empresa de software ha estado creciendo rapidamente, y con ello, la cantidad de consultas de soporte tecnico que recibimos a diario. Aunque intentamos manejarlo internamente, el volumen ya supera los 250 mensajes diarios, lo cual es complicado para nuestro pequeño equipo. Conoci Vambe gracias a una publicacion en LinkedIn y me parecio una opcion interesante para automatizar estas interacciones sin comprometer la calidad del servicio. Valoramos especialmente la capacidad de Vambe para integrarse con nuestros sistemas de tickets existentes.",
       "classification": {
-        "reasoning": "Señales: 'empresa de software' → Tecnología. Volumen 250 mensajes/día (~1750/sem) supera el umbral de 150/sem → Mid-market. Dolor principal es la INTEGRACIÓN con sistema de tickets existente (no el volumen per se) → Integración Técnica. Lenguaje corporativo impersonal sin verbos posesivos de fundador. Cierre con lenguaje DESCRIPTIVO: 'me parecio una opcion interesante' + 'Valoramos especialmente la capacidad' → Evaluando. Sin objeción verbal → Ninguna. Tono informativo-valorativo sin intención activa de avance → Neutro.",
+        "reasoning": "Señales: 'empresa de software' → Tecnología. Volumen 250 mensajes/día (~1750/sem) supera el umbral de 150/sem → Mid-market. Dolor principal es la INTEGRACIÓN con sistema de tickets existente (no el volumen per se) → Integración Técnica. Lenguaje corporativo impersonal sin verbos posesivos de fundador. Cierre con lenguaje DESCRIPTIVO: 'me parecio una opcion interesante' + 'Valoramos especialmente la capacidad' → Evaluando. Sin objeción verbal → Ninguna. Tono informativo-valorativo sin intención activa de avance → Neutro. leadSource='Otros' porque 'publicacion en LinkedIn' es contenido orgánico — no hay mención literal de anuncio/ad/sponsored.",
         "industry": "Tecnología",
         "companySize": "Mid-market",
         "mainPainPoint": "Integración Técnica",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Empresa de software con 250 mensajes diarios de soporte que excede la capacidad del equipo. Requieren automatización con integración nativa al sistema de tickets existente — la compatibilidad técnica con el stack actual es el requisito crítico, no solo reducción de volumen.",
         "nextSteps": "Agendar demo con foco en integración con sistema de tickets. Evaluar compatibilidad técnica con el stack actual y acordar métricas de éxito antes del piloto."
@@ -22,12 +22,12 @@
       "sourceRow": 22,
       "transcript": "Nuestra empresa de asesoría financiera ha enfrentado un incremento en las consultas de clientes interesados en inversiones internacionales. Desde que expandimos nuestro portafolio de servicios, las preguntas sobre regulaciones y oportunidades en distintos países han aumentado considerablemente. Normalmente manejamos alrededor de 150 interacciones semanales, pero en temporadas de alta demanda esto puede duplicarse. Conocí Vambe en un seminario de fintech y me llamó la atención su capacidad para automatizar respuestas complejas sin comprometer la precisión, algo crucial en nuestro sector.",
       "classification": {
-        "reasoning": "Señales: 'asesoría financiera' + 'inversiones internacionales' → Servicios Financieros. Volumen 150 sem en base + se DUPLICA a 300 en picos (multi-país, operación internacional) → Mid-market. Dolor explícito en PICOS ('en temporadas de alta demanda esto puede duplicarse') → Variabilidad Estacional, no Volumen Repetitivo. Lenguaje corporativo sin marca clara de fundador. Cierre DESCRIPTIVO: 'me llamó la atención su capacidad para automatizar' → Evaluando. Sin objeción → Ninguna. Tono informativo-valorativo sin intención activa → Neutro.",
+        "reasoning": "Señales: 'asesoría financiera' + 'inversiones internacionales' → Servicios Financieros. Volumen 150 sem en base + se DUPLICA a 300 en picos (multi-país, operación internacional) → Mid-market. Dolor explícito en PICOS ('en temporadas de alta demanda esto puede duplicarse') → Variabilidad Estacional, no Volumen Repetitivo. Lenguaje corporativo sin marca clara de fundador. Cierre DESCRIPTIVO: 'me llamó la atención su capacidad para automatizar' → Evaluando. Sin objeción → Ninguna. Tono informativo-valorativo sin intención activa → Neutro. leadSource='Otros' porque 'seminario de fintech' es un evento presencial — no es publicidad pagada ni búsqueda online.",
         "industry": "Servicios Financieros",
         "companySize": "Mid-market",
         "mainPainPoint": "Variabilidad Estacional",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Firma de asesoría financiera con portafolio internacional. Maneja 150 interacciones semanales en régimen normal con duplicación a ~300 en picos estacionales. Requieren automatización que absorba los picos sin sacrificar precisión en temas regulatorios sensibles.",
         "nextSteps": "Agendar demo enfocada en precisión regulatoria y capacidad para picos estacionales. Definir piloto calendarizado alrededor del próximo ciclo de alta demanda."
@@ -38,12 +38,12 @@
       "sourceRow": 20,
       "transcript": "Nuestra tienda de productos organicos ha visto un crecimiento en las ventas online, lo que ha generado un aumento en las consultas sobre disponibilidad y envios. Durante las promociones, podemos llegar a recibir mas de 150 mensajes al dia. Escuche sobre Vambe en una charla sobre comercio electronico y me intereso la idea de automatizar la atencion al cliente. Valoramos la posibilidad de ofrecer respuestas rapidas y precisas sin perder la cercania con nuestros clientes.",
       "classification": {
-        "reasoning": "Señales: 'tienda de productos organicos' con ventas online → Hogar/Sostenibilidad. Volumen moderado con pico de ~150 msg/día durante promociones (operación local) → PYME. Dolor en los PICOS de promociones, no en régimen base → Variabilidad Estacional. Lenguaje posesivo y escala pequeña ('nuestra tienda'), contexto de e-commerce artesanal → dueño. Cierre DESCRIPTIVO: 'me intereso la idea de automatizar' + 'Valoramos la posibilidad' → Evaluando. Sin objeción → Ninguna. Tono valorativo sin intención activa → Neutro.",
+        "reasoning": "Señales: 'tienda de productos organicos' con ventas online → Hogar/Sostenibilidad. Volumen moderado con pico de ~150 msg/día durante promociones (operación local) → PYME. Dolor en los PICOS de promociones, no en régimen base → Variabilidad Estacional. Lenguaje posesivo y escala pequeña ('nuestra tienda'), contexto de e-commerce artesanal → dueño. Cierre DESCRIPTIVO: 'me intereso la idea de automatizar' + 'Valoramos la posibilidad' → Evaluando. Sin objeción → Ninguna. Tono valorativo sin intención activa → Neutro. leadSource='Otros' porque 'charla sobre comercio electronico' es un evento presencial — no encaja en Publicidad/Búsqueda Online/Outbound/Recomendación.",
         "industry": "Hogar/Sostenibilidad",
         "companySize": "PYME",
         "mainPainPoint": "Variabilidad Estacional",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Evaluando",
+        "leadSource": "Otros",
         "sentiment": "Neutro",
         "needsSummary": "Tienda de productos orgánicos en crecimiento online. Volumen moderado en régimen normal, con picos de más de 150 mensajes diarios en promociones. Requieren automatización que cubra los picos sin sacrificar la cercanía del tono de marca artesanal.",
         "nextSteps": "Agendar demo alineada con el próximo ciclo promocional para validar absorción del pico de volumen y consistencia de tono de marca."
@@ -56,12 +56,12 @@
       "purpose": "Contrastive example — teaches explicit commitment frontier (Evaluando → Muy Interesado transition).",
       "transcript": "Nuestra firma de servicios profesionales atiende aproximadamente 400 consultas semanales de clientes corporativos internacionales. Después de evaluar tres alternativas, estamos interesados en implementar Vambe para automatizar nuestra atención de primer nivel. Queremos arrancar con un piloto este mes sobre una vertical acotada, y si los resultados acompañan escalar al resto del portafolio en el próximo trimestre. Necesitamos coordinar la demo técnica con nuestro equipo de IT esta semana.",
       "classification": {
-        "reasoning": "Señales: 'firma de servicios profesionales' con clientes corporativos internacionales → Servicios Profesionales. Volumen 400/sem + operación internacional → Mid-market. Dolor: volumen alto y repetitivo de consultas de primer nivel → Volumen Repetitivo. Voz institucional en firma profesional hablando en primera persona. Cierre con COMPROMISO ACTIVO: 'estamos interesados en implementar', 'queremos arrancar con un piloto este mes', 'Necesitamos coordinar la demo esta semana' → Muy Interesado. Sin objeción → Ninguna. Tono positivo con intención activa → Positivo.",
+        "reasoning": "Señales: 'firma de servicios profesionales' con clientes corporativos internacionales → Servicios Profesionales. Volumen 400/sem + operación internacional → Mid-market. Dolor: volumen alto y repetitivo de consultas de primer nivel → Volumen Repetitivo. Voz institucional en firma profesional hablando en primera persona. Cierre con COMPROMISO ACTIVO: 'estamos interesados en implementar', 'queremos arrancar con un piloto este mes', 'Necesitamos coordinar la demo esta semana' → Muy Interesado. Sin objeción → Ninguna. Tono positivo con intención activa → Positivo. leadSource='No Mencionado' porque la transcripción no indica cómo llegaron a Vambe.",
         "industry": "Servicios Profesionales",
         "companySize": "Mid-market",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Muy Interesado",
+        "leadSource": "No Mencionado",
         "sentiment": "Positivo",
         "needsSummary": "Firma de servicios profesionales con cartera corporativa internacional y 400 consultas semanales de primer nivel. Tras evaluar tres alternativas decidieron implementar Vambe. Plan: piloto en una vertical acotada este mes, escalado al portafolio completo en el próximo trimestre.",
         "nextSteps": "Coordinar demo técnica con IT esta semana. Definir vertical del piloto y métricas de éxito. Formalizar contrato y calendario de implementación."
@@ -74,12 +74,12 @@
       "purpose": "Contrastive example — teaches urgency frontier (Corto → Urgente transition) with explicit commitment language.",
       "transcript": "Somos una clínica familiar con aproximadamente 70 consultas diarias sobre citas y tratamientos. Vimos Vambe en una feria hace dos semanas y ya decidimos avanzar. Queremos arrancar esta misma semana, no podemos esperar más — pasame el contrato y coordinamos los próximos días para tener el sistema andando antes del fin de mes.",
       "classification": {
-        "reasoning": "Señales: 'clínica' + consultas sobre citas y tratamientos → Salud. Volumen 70/día (~490/sem) + escala familiar → PYME. Consultas repetitivas sin señales de picos estacionales ni integración específica → Volumen Repetitivo. Voz de dueño en clínica familiar ('Somos una clínica familiar', 'pasame el contrato'). Cierre con COMPROMISO MÁXIMO Y URGENCIA: 'ya decidimos avanzar', 'queremos arrancar esta misma semana', 'no podemos esperar más' → Muy Interesado. Sin objeción → Ninguna. Tono positivo con intención activa inmediata → Positivo.",
+        "reasoning": "Señales: 'clínica' + consultas sobre citas y tratamientos → Salud. Volumen 70/día (~490/sem) + escala familiar → PYME. Consultas repetitivas sin señales de picos estacionales ni integración específica → Volumen Repetitivo. Voz de dueño en clínica familiar ('Somos una clínica familiar', 'pasame el contrato'). Cierre con COMPROMISO MÁXIMO Y URGENCIA: 'ya decidimos avanzar', 'queremos arrancar esta misma semana', 'no podemos esperar más' → Muy Interesado. Sin objeción → Ninguna. Tono positivo con intención activa inmediata → Positivo. leadSource='Otros' porque 'una feria hace dos semanas' es un evento presencial — no es publicidad pagada, búsqueda online, recomendación personal ni outbound.",
         "industry": "Salud",
         "companySize": "PYME",
         "mainPainPoint": "Volumen Repetitivo",
         "keyObjection": "Ninguna",
-        "buyingSignal": "Muy Interesado",
+        "leadSource": "Otros",
         "sentiment": "Positivo",
         "needsSummary": "Clínica familiar con 70 consultas diarias sobre citas y tratamientos. Decisión interna de implementar ya tomada tras ver Vambe en una feria. Urgencia máxima: quieren el sistema operativo antes de fin de mes sin objeciones ni requerimientos técnicos complejos.",
         "nextSteps": "Enviar contrato para firma esta semana. Coordinar kickoff y go-live antes de fin de mes. Configurar base de conocimiento sobre citas y tratamientos habituales."

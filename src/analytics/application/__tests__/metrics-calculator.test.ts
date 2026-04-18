@@ -354,6 +354,37 @@ describe.skipIf(!hasDbUrl)("MetricsCalculator (integration)", () => {
     }
   });
 
+  it("sellerConversion respects filter industry (baseline delta)", async () => {
+    const before = await calc.sellerConversion({ industry: "Retail" });
+    await rawDb.execute(
+      sql`DELETE FROM ${clients} WHERE ${clients.email} LIKE 'metrics-test-%@example.com'`,
+    );
+    const baseline = await calc.sellerConversion({ industry: "Retail" });
+    await rawDb.insert(clients).values(FIXTURE);
+
+    // Fixture Retail rows: #6 (Puma, closed), #7 (Puma, open). Delta = 2 total, 1 closed.
+    const beforePumaTotal =
+      before.find((r) => r.seller === "Puma")?.totalClients ?? 0;
+    const baselinePumaTotal =
+      baseline.find((r) => r.seller === "Puma")?.totalClients ?? 0;
+    expect(beforePumaTotal - baselinePumaTotal).toBe(2);
+
+    const beforePumaClosed =
+      before.find((r) => r.seller === "Puma")?.closedClients ?? 0;
+    const baselinePumaClosed =
+      baseline.find((r) => r.seller === "Puma")?.closedClients ?? 0;
+    expect(beforePumaClosed - baselinePumaClosed).toBe(1);
+  });
+
+  it("sellerConversion respects filter assignedSeller", async () => {
+    const rows = await calc.sellerConversion({ assignedSeller: "Puma" });
+    expect(rows.length).toBe(1);
+    expect(rows[0]!.seller).toBe("Puma");
+    expect(rows[0]!.openClients).toBe(
+      rows[0]!.totalClients - rows[0]!.closedClients,
+    );
+  });
+
   it("returns empty arrays and null pain point when filters match 0 rows", async () => {
     const impossible = { assignedSeller: "__NO_SUCH_SELLER__" };
     const kpi = await calc.kpis(impossible);

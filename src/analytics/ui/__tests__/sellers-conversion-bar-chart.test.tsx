@@ -56,9 +56,11 @@ describe("SellersConversionBarChart", () => {
     expect(
       screen.getByRole("region", { name: /conversión por vendedor/i }),
     ).toBeInTheDocument();
-    // YAxis renders seller names as tick labels.
-    expect(screen.getByText("Toro")).toBeInTheDocument();
-    expect(screen.getByText("Puma")).toBeInTheDocument();
-    expect(screen.getByText("Lobo")).toBeInTheDocument();
+    // YAxis renders seller names as tick labels. Recharts also emits a
+    // hidden `recharts_measurement_span` with the text, so at least one
+    // match is required per seller.
+    expect(screen.getAllByText("Toro").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Puma").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Lobo").length).toBeGreaterThan(0);
   });
 });
